@@ -1,0 +1,35 @@
+{
+    "i18n_menu_title": "Menu",
+
+    "i18n_reset_order_button": "Reset order",
+    "i18n_add_button": "Add",
+    "i18n_back_button": "Back",
+    "i18n_save_button": "Save",
+    "i18n_find_button": "Find",
+
+    "i18n_error_codeAlreadyExists": "A record with the code {0} already exists.",
+    "i18n_error_stringIsNotNumber": "The text entered is not numeric.",
+
+    "i18n_common_yes": "Yes",
+    "i18n_common_no": "No",
+    "i18n_common_delete_item": "Do you want to delete the selected item?",
+
+    "i18n_common_confirm": "Confirm",
+    "i18n_common_actions": "Actions",
+    "i18n_common_loading": "Loading...",
+    "i18n_common_delete": "Delete",
+    "i18n_common_code": "Code",
+    "i18n_common_first_name": "First name",
+    "i18n_common_last_name": "Last name",
+    "i18n_common_description": "Description",
+
+    "i18n_clientes_title": "Customers",
+    "i18n_clientes_customer_type_codigo": "Customer type code",
+    "i18n_clientes_customer_type": "Customer type",
+    "i18n_clientes_saldo": "Balance",
+
+    "i18n_tipos_cliente_title": "Customer types",
+    
+    "i18n_usuarios_title": "Users",
+    "i18n_usuarios_username": "Username"
+}

@@ -1,0 +1,49 @@
+/* ESTILOS PARA TABLAS. */
+
+.my-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.my-table td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.my-table th {
+    background-color: rgb(108, 109, 116);
+    color: ghostwhite;
+}
+
+tr:nth-child(even) {
+    background-color: rgb(237, 239, 243);
+}
+
+/* BOTONES */
+
+.action-column-div {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    /*justify-content: center;*/
+}
+
+/* Margen izquierdo a cualquier contenedor de botones de la columna de acciones excepto el primero. */
+.action-column-div div:not(:first-of-type) {
+    margin-left: 4px;
+}
+
+/* Botón de orden de filas. */
+
+.order-button {
+    margin-left: 5px;
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+    font-weight: normal !important;
+}

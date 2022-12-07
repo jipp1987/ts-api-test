@@ -1,0 +1,37 @@
+.modal {
+    position: absolute; /* Esto es importante: el modal debe tener posición absoluta sobre un elemento con posición relativa. */
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    background-color: #f6f6f6;
+  }
+  
+  .modal-header {
+    padding: 5px 10px 20px 10px;
+    margin: 0;
+  }
+  
+  .modal-title {
+    float: left;
+    width: 95%;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .close-button-div {
+    float: right;
+    width: auto;
+  }
+  
+  .modal-body {
+    padding: 10px;
+    border-top: 1px solid rgba(108, 109, 116);
+  }

@@ -1,0 +1,52 @@
+/* El formato es que el label aparece arriba y el input abajo, así se aprovecha mejor el espacio. */
+
+.input-panel {
+    float: left;
+    display: flex;
+    flex-direction: column;
+    /* Un poco de mager hacia la derecha para separarlo del siguiente elemento en el formulario. */
+    margin-right: 20px;
+}
+
+/* Separar un poco la alineación entre el label y el input, así se visualiza mejor. */
+
+.input-panel>.my-input {
+    margin-left: 3px;
+}
+
+.my-label {
+    margin-bottom: 3px;
+    font-size: 13px !important;
+    font-weight: bold;
+}
+
+.my-input {
+    padding: 0.25em 0.5em;
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+
+.suggestion-box {
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid rgb(150, 147, 147);
+    position: absolute;
+    top: 42px;
+    left: 0;
+    z-index: 10;
+    background-color: ghostwhite;
+}
+
+/* Para que no haga wrapping sobre el contenido de las celdas. */
+
+.suggestion-box td {
+    white-space: nowrap;
+    padding: 2px;
+    border: 1px solid rgb(150, 147, 147);
+}
+
+/* Esto sería el hover de las filas, pero lo dejo aparte para poder utilizar los cursores para navegar. */
+.suggestion-box-selected-row {
+    background-color: rgb(199, 194, 194) !important;
+    cursor: pointer;
+}

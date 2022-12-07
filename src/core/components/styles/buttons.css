@@ -1,0 +1,100 @@
+/* FLATBUTTONS */
+
+.flat-button {
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    color: #FFF;
+    background: rgb(108, 109, 116);
+    display: inline-block;
+    padding: 7px 20px;
+    margin: 10px 0px;
+    border: 3px solid rgba(0, 0, 0, 0.16);
+    -webkit-transition: all 0.25s ease;
+    -ms-transition: all 0.25s ease;
+    -moz-transition: all 0.25s ease;
+    -o-transition: all 0.25s ease;
+    transition: all 0.25s ease;
+}
+
+.flat-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* IMAGEBUTTONS */
+
+/* Contenedor del botón */
+.btn-container {
+    display: flex;
+    cursor: pointer;
+}
+
+.btn-container:hover {
+    opacity: 0.5;
+}
+
+/* Estilo del botón para centrar la imagen y el texto verticalmente. */
+.custom-button {
+    background-color: transparent !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid transparent !important;
+}
+
+.custom-button:focus {
+    border: 1px solid black !important;
+    border-radius: 2px !important;
+}
+
+/* Estilo principal de la imagen. */
+.image-button {
+    background-size: cover !important;
+    width: 20px;
+    height: 20px;
+}
+
+/* Texto del botón. */
+.btn-text {
+    margin-left: 5px;
+}
+
+/* Estilos propios de cada icono. */
+.restart-button {
+    background: url("../../resources/restart.png") no-repeat;
+}
+
+.close-button {
+    background: url("../../resources/close.png") no-repeat;
+}
+
+.add-button {
+    background: url("../../resources/add.png") no-repeat;
+}
+
+.back-button {
+    background: url("../../resources/back.png") no-repeat;
+}
+
+.save-button {
+    background: url("../../resources/save.png") no-repeat;
+}
+
+.delete {
+    background: url("../../resources/delete.jpg") no-repeat;
+}
+
+.find-button {
+    background: url("../../resources/find.png") no-repeat;
+}
+
+.select-button {
+    background: url("../../resources/select.png") no-repeat;
+}
+
+.edit-button {
+    background: url("../../resources/edit.png") no-repeat;
+}

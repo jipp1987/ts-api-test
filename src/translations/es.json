@@ -1,0 +1,35 @@
+{
+    "i18n_menu_title": "Menú",
+
+    "i18n_reset_order_button": "Resetear orden",
+    "i18n_add_button": "Añadir",
+    "i18n_back_button": "Volver",
+    "i18n_save_button": "Guardar",
+    "i18n_find_button": "Buscar",
+
+    "i18n_error_codeAlreadyExists": "Ya existe un registro con el código {0}.",
+    "i18n_error_stringIsNotNumber": "El texto introducido no es numérico.",
+
+    "i18n_common_yes": "Sí",
+    "i18n_common_no": "No",
+    "i18n_common_delete_item": "¿Desea eliminar el elemento seleccionado?",
+
+    "i18n_common_confirm": "Confirmar",
+    "i18n_common_actions": "Acciones",
+    "i18n_common_loading": "Cargando...",
+    "i18n_common_delete": "Eliminar",
+    "i18n_common_code": "Código",
+    "i18n_common_first_name": "Nombre",
+    "i18n_common_last_name": "Apellidos",
+    "i18n_common_description": "Descripción",
+
+    "i18n_clientes_title": "Clientes",
+    "i18n_clientes_customer_type_codigo": "Código del tipo de cliente",
+    "i18n_clientes_customer_type": "Tipo de cliente",
+    "i18n_clientes_saldo": "Saldo",
+
+    "i18n_tipos_cliente_title": "Tipos de cliente",
+
+    "i18n_usuarios_title": "Usuarios",
+    "i18n_usuarios_username": "Nombre de usuario"
+}

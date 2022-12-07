@@ -1,38 +1,137 @@
-.App {
+/* ESTILOS GENÉRICOS PARA DIVERSOS COMPONENTES */
+
+/* Quito margen, padding, etc... a nivel general. */
+
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ESTILOS PARA COMPONENTES IDENTIFICADOS POR ID */
+
+/* Estilo división principal que contiene a las demás. */
+
+#main {
+  display: block;
+  margin: auto;
+  text-align: left;
+  text-shadow: none;
+  width: 100%;
+  height: 900px;
+  font-family: Helvetica, Verdana, sans-serif;
+  font-size: 15px;
+}
+
+/* Estilo cabecera superior. */
+
+#header {
+  padding: 30px;
+  height: 50px;
+  width: auto;
+  color: ghostwhite;
+  background-color: rgb(108, 109, 116);
+}
+
+/* Estilo del contenedor del menú y el panel principal. */
+
+#container {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Estilo de la división para el menú lateral. */
+
+#leftMenu {
+  padding: 30px;
+  width: 10%;
+  height: 760px;
+  /* Hay que restar el padding */
+  background-color: rgb(237, 239, 243);
+}
+
+/* Estilo para el panel principal. */
+
+#panel {
+  width: 100%;
+  height: 810px;
+  background-color: ghostwhite;
+}
+
+/* Estilo para el contenedor interior del panel principal. */
+
+#inner-panel {
+  float: left;
+  padding: 30px;
+  width: 95%;
+}
+
+#footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  background-color: rgb(108, 109, 116);
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* MENÚ DE LA IZQUIERDA. */
+
+ul.menuLeft {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+ul.menuLeft li:not(:last-child) {
+  border-bottom: 1px solid #ccc;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+
+ul.menuLeft li span {
+  text-decoration: none;
+  color: #000;
+  -webkit-transition: font-size 0.3s ease, background-color 0.3s ease;
+  -moz-transition: font-size 0.3s ease, background-color 0.3s ease;
+  -o-transition: font-size 0.3s ease, background-color 0.3s ease;
+  -ms-transition: font-size 0.3s ease, background-color 0.3s ease;
+  transition: font-size 0.3s ease, background-color 0.3s ease;
+  display: block;
+  width: 200px;
+}
+
+ul.menuLeft li span:hover {
+  font-size: 20px;
+  background: #f6f6f6;
+  cursor: pointer;
+}
+
+/* ESTILOS TOOLBAR */
+
+.toolbar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  flex-direction: row;
+  margin-bottom: 2px;
+  padding: 2px;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Separar elementos de la toolbar excluyendo al primero. */
+.toolbar div:not(:first-child) {
+  float: left;
+  margin-left: 8px;
 }
