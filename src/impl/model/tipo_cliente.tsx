@@ -1,4 +1,5 @@
 import BaseEntity from './../../core/model/base_entity';
+
 import Usuario from './usuario';
 
 /**
@@ -11,15 +12,20 @@ export default class TipoCliente extends BaseEntity {
     descripcion: string;
     usuario_creacion: Usuario | null;
     usuario_ult_mod: Usuario | null;
+    fechacreacion: Date | null;
+    fechaultmod: Date | null;
 
     // CONTRUCTOR
-    constructor(id: number, codigo: string, descripcion: string, usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null) {
+    constructor(id: number, codigo: string, descripcion: string, usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null, 
+        fechacreacion: Date | null = null, fechaultmod: Date | null = null) {
         super();
         this.id = id;
         this.codigo = codigo;
         this.descripcion = descripcion;
         this.usuario_creacion = usuario_creacion;
         this.usuario_ult_mod = usuario_ult_mod;
+        this.fechacreacion = fechacreacion;
+        this.fechaultmod = fechaultmod;
     }
 
     // MÉTODOS
@@ -29,7 +35,7 @@ export default class TipoCliente extends BaseEntity {
      * @returns Listado de propiedades a exportar en json. 
      */
     getPropertiesList() {
-        const json_props = ['id', 'codigo', 'descripcion', 'usuario_creacion', 'usuario_ult_mod'];
+        const json_props = ['id', 'codigo', 'descripcion', 'usuario_creacion', 'usuario_ult_mod', 'fechacreacion', 'fechaultmod'];
         return json_props;
     }
 
@@ -49,22 +55,25 @@ export default class TipoCliente extends BaseEntity {
             object_clause = serialized;
         }
         
-        const clause_ = object_clause as TipoCliente;
+        // Comprobar objetos anidados
+        // Usuarios
+        Usuario.checkUsuariosFromJsonObject(object_clause);
         
-        if (clause_.usuario_creacion === undefined) {
-            clause_.usuario_creacion = null;
-        }
+        // Comprobar fechas del objeto plano
+        super.checkDatesFromJsonObject(object_clause);
 
-        if (clause_.usuario_ult_mod === undefined) {
-            clause_.usuario_ult_mod = null;
-        }
+        const clause_ = object_clause as TipoCliente;
+
+        console.log(clause_);
 
         return new TipoCliente(
             clause_.id,
             clause_.codigo,
             clause_.descripcion,
             clause_.usuario_creacion,
-            clause_.usuario_ult_mod
+            clause_.usuario_ult_mod,
+            clause_.fechacreacion,
+            clause_.fechaultmod
         )
     }
 

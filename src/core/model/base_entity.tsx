@@ -1,4 +1,4 @@
-import { generateUuid } from '../utils/helper-utils'
+import { generateUuid, get_property_value_by_name, stringToDateTime } from '../utils/helper-utils'
 import Serializable from './serializable';
 
 export default abstract class BaseEntity extends Serializable {
@@ -47,14 +47,9 @@ export default abstract class BaseEntity extends Serializable {
      * 
      * @returns {string} Nombre del campo id de la entidad.
      */
-     public static getIdFieldName(): string {
+    public static getIdFieldName(): string {
         return "id";
     }
-
-    /**
-     * Método a implementar. Devuelve un array de strings con las propiedades de la clase a exportar en json.
-     */
-    public abstract getPropertiesList(): string[];
 
     /**
     * Devuelve un diccionario con las propiedades del objeto para enviarlo como json a una api.
@@ -81,6 +76,30 @@ export default abstract class BaseEntity extends Serializable {
         }
 
         return json_dict;
+    }
+
+    /**
+     * Comprueba las fechas en un objeto plano de JS para el parseo de json a objeto.
+     * 
+     * @param object_clause Objeto JS plano.
+     */
+    protected static checkDatesFromJsonObject(object_clause: {}): void {
+        if (get_property_value_by_name(object_clause, "fechacreacion") === undefined) {
+            Object.assign(object_clause, { fechacreacion: null });
+        }
+
+        if (get_property_value_by_name(object_clause, "fechaultmod") === undefined) {
+            Object.assign(object_clause, { fechaultmod: null });
+        }
+
+        // La fecha será un string, con lo cual habrá que parsearla a Date
+        if (typeof get_property_value_by_name(object_clause, "fechacreacion") === "string") {
+            Object.assign(object_clause, { fechacreacion: stringToDateTime(get_property_value_by_name(object_clause, "fechacreacion")) });
+        }
+
+        if (typeof get_property_value_by_name(object_clause, "fechaultmod") === "string") {
+            Object.assign(object_clause, { fechaultmod: stringToDateTime(get_property_value_by_name(object_clause, "fechaultmod")) });
+        }
     }
 
 }

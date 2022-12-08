@@ -22,6 +22,10 @@
     "i18n_common_first_name": "First name",
     "i18n_common_last_name": "Last name",
     "i18n_common_description": "Description",
+    "i18n_common_fechacreacion": "Creation date",
+    "i18n_common_fechaultmod": "Last mod. date",
+    "i18n_common_usuario_creacion": "Creation user",
+    "i18n_common_usuario_ult_mod": "Last mod. user",
 
     "i18n_clientes_title": "Customers",
     "i18n_clientes_customer_type_codigo": "Customer type code",

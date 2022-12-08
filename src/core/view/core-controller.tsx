@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
-import { ViewStates, SelectActions, ViewValidators, get_property_by_name, ModalHelper } from "../utils/helper-utils";
+import { ViewStates, SelectActions, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
 
@@ -180,7 +180,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 }
 
                 // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
-                const id_value: string | number | null = get_property_by_name(this.selectedItem, this.entity_class.getIdFieldName());
+                const id_value: string | number | null = get_property_value_by_name(this.selectedItem, this.entity_class.getIdFieldName());
                 const action = id_value !== undefined && id_value !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
 
                 request_body = {
@@ -292,7 +292,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             let actual_value: any;
             this.selectedItem.errorMessagesInForm.forEach((value: any, key: string) => {
                 // El valor de cada clave del mapa es una tupla con el error y el valor que lo ha provocado. Lo que hago es comparar el valor actual con este último.
-                actual_value = get_property_by_name(this.selectedItem, key);
+                actual_value = get_property_value_by_name(this.selectedItem, key);
 
                 if (this.selectedItem !== null && actual_value !== value[1]) {
                     // Si son diferentes, guardo la clave en la lista de claves a eliminar.
@@ -590,7 +590,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                     // Validador de string numérico
                     function_to_call = this.string_is_only_numbers;
                     // Parámetros: valor del campo en la entidad
-                    function_to_call_params = [get_property_by_name(item_to_check, field_name)];
+                    function_to_call_params = [get_property_value_by_name(item_to_check, field_name)];
                     break;
 
                 default:
@@ -618,7 +618,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         // bool para saber si ha ido todo bien.
         var isValid: boolean = true;
 
-        var value_: any = get_property_by_name(item_to_check, field_name);
+        var value_: any = get_property_value_by_name(item_to_check, field_name);
 
         if (item_to_check !== null && value_ !== undefined && value_ !== null) {
             // Tiene mapa de errores (campo errorMessagesInForm)
@@ -661,14 +661,14 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         var field_code_name_: string = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
 
-        const codigo: string = get_property_by_name(item_to_check, field_code_name_);
+        const codigo: string = get_property_value_by_name(item_to_check, field_code_name_);
 
         // Filtrar por código de tipo de cliente.
         const filters: Array<FilterClause> = [new FilterClause(field_code_name_, FilterTypes.EQUALS, codigo)];
 
         // Necesito el id por si fuera una actualización, para que no valide el código sobre sí mismo.
         const field_id_name = this.entity_class.getIdFieldName();
-        const field_id = get_property_by_name(item_to_check, field_id_name);
+        const field_id = get_property_value_by_name(item_to_check, field_id_name);
         const id = field_id !== undefined && field_id !== null ? field_id : null;
 
         if (id !== null) {

@@ -1,4 +1,5 @@
 import uuid from 'react-uuid';
+import moment from 'moment';
 
 // Definición de tokens para almacenamiento en localStorage
 /**
@@ -83,13 +84,13 @@ export function resolve_property_by_string(path: (string | Array<string>), obj: 
 }
 
 /**
- * Devuelve el valor del campo de un objeto.
+ * Devuelve el valor del campo de un objeto según el nombre de la propiedad.
  * 
  * @param owner_of_prop Objeto a inspeccionar.
  * @param prop_name Nombre de la propiedad.
  * @returns Valor actual del campo.
  */
-export function get_property_by_name(owner_of_prop: any, prop_name: string): any {
+export function get_property_value_by_name(owner_of_prop: any, prop_name: string): any {
     type ObjectKey = keyof typeof owner_of_prop;
     const myVar = prop_name as ObjectKey;
 
@@ -195,6 +196,33 @@ export function delete_from_localStorage_by_tab(tab: number): void {
     for (let i = 0; i < keys_to_delete.length; i++) {
         localStorage.removeItem(keys_to_delete[i]);
     }
+}
+
+/**
+ * Convierte un string con formato YYYY-MM-DD HH:mm:ss a un objeto Date de typescript.
+ * 
+ * @param dateString Formato YYYY-MM-DD HH:mm:ss
+ * @returns Date
+ */
+export function stringToDateTime(dateString: string): Date {
+    // Separo el día de la hora
+    const [dateComponents, timeComponents] = dateString.split(' ');
+    // El separador del año, mes y día es un guión
+    const [year, month, day] = dateComponents.split('-');
+    // El de la hora los dos puntos
+    const [hours, minutes, seconds] = timeComponents.split(':');
+    // Le resto uno al mes porque el constructor supone que el mes cero es enero
+    return new Date(+year, +month - 1, +day, +hours, +minutes, +seconds);
+}
+
+/**
+ * Convierte un string a fecha.
+ * @param date_ 
+ * @param date_format Formato por defecto: YYYY-MM-DD HH:mm:ss
+ * @returns 
+ */
+export function dateToString(date_: Date, date_format: string = "YYYY-MM-DD HH:mm:ss"): string {
+    return (moment(date_)).format(date_format);
 }
 
 /**

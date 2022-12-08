@@ -179,7 +179,7 @@ export class JoinClause extends Serializable {
          */
         this.join_type = join_type;
         /**
-         * Alias de tabla.
+         * Join con fetch (traer la entidad al completo).
          */
         this.is_join_with_fetch = is_join_with_fetch;
     }

@@ -2,7 +2,7 @@ import React from 'react';
 
 import DataTableHeader from '../../core/view/table-header';
 import MyInput from '../../core/components/input-text';
-import { FieldClause } from '../../core/utils/dao-utils';
+import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
 import { ICoreControllerProps } from '../../core/view/core-controller';
 import TipoCliente from '../model/tipo_cliente';
@@ -49,14 +49,27 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
             new FieldClause("id", null),
             new FieldClause("codigo", null),
             new FieldClause("descripcion", null),
+            new FieldClause("fechacreacion", null),
+            new FieldClause("fechaultmod", null),
+            new FieldClause("usuario_creacion.username", null),
+            new FieldClause("usuario_ult_mod.username", null),
+        ];
+
+        this.joins = [
+            new JoinClause("usuario_creacion", JoinTypes.LEFT_JOIN, false),
+            new JoinClause("usuario_ult_mod", JoinTypes.LEFT_JOIN, false)
         ];
 
         /**
          * Array de objetos HeaderHelper para modelar las cabeceras.
          */
         this.headers = [
-            new DataTableHeader(0, 'codigo', 'i18n_common_code', '100px', null),
-            new DataTableHeader(1, 'descripcion', 'i18n_common_description', '200px', null),
+            new DataTableHeader(0, 'codigo', 'i18n_common_code', '80px', null),
+            new DataTableHeader(1, 'descripcion', 'i18n_common_description', '100px', null),
+            new DataTableHeader(2, 'fechacreacion', 'i18n_common_fechacreacion', '80px', "DATETIME"),
+            new DataTableHeader(3, 'fechaultmod', 'i18n_common_fechaultmod', '80px', "DATETIME"),
+            new DataTableHeader(4, 'usuario_creacion.username', 'i18n_common_usuario_creacion', '100px', null),
+            new DataTableHeader(5, 'usuario_ult_mod.username', 'i18n_common_usuario_ult_mod', '100px', null)
         ];
     }
 

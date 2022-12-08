@@ -1,9 +1,16 @@
-import { get_property_by_name } from "../utils/helper-utils";
+import { get_property_value_by_name, dateToString } from "../utils/helper-utils";
 
 /**
  * Clase para serializar objetos y deserializarlos desde json.
  */
 export default abstract class Serializable {
+
+    /**
+     * Devuelve un array de strings con las propiedades de la clase a exportar en json.
+     */
+    public getPropertiesList(): string[] {
+        return Object.getOwnPropertyNames(this);
+    }
 
     /**
      * Devuelve un objeto plano para serializar a json.
@@ -13,8 +20,10 @@ export default abstract class Serializable {
     protected toObject() {
         // Creo un objeto vacío y voy completando los datos.
         const object_result = {};
+
         // Obtengo un array de strings con las propiedades de la clase.
-        const my_props = Object.getOwnPropertyNames(this);
+        const my_props = this.getPropertiesList();
+
         // Declaro el nuevo valor a añadir al objeto serializado así como la clave para el mapeo de la propiedad
         let key_value: any;
         let attr: any;
@@ -24,7 +33,7 @@ export default abstract class Serializable {
         // Bucle recorriendo las propiedades de la instancia del objeto y completando el diccionario serializado
         for (let i = 0; i < my_props.length; i++) {
             key = my_props[i];
-            attr = get_property_by_name(this, key);
+            attr = get_property_value_by_name(this, key);
 
             // Si el atributo fuese una instancia de esta misma clase, serializarla también.
             if (attr instanceof Serializable) {
@@ -35,6 +44,9 @@ export default abstract class Serializable {
                 for (let j = 0; j < attr.length; j++) {
                     value[j] = attr[j].toObject();
                 }
+            } else if (attr instanceof Date) {
+                // Si es una fecha, lo devuelvo como string
+                value = dateToString(attr);
             } else {
                 value = attr;
             }
@@ -43,6 +55,7 @@ export default abstract class Serializable {
             key_value = {
                 key: value,
             }
+            
             // Establezco el valor en el objeto resultado.
             Object.assign(object_result, key_value);
         }
@@ -55,7 +68,7 @@ export default abstract class Serializable {
      * 
      * @returns json string
      */
-     public serialize(): string {
+    public serialize(): string {
         return JSON.stringify(this.toObject());
     }
 

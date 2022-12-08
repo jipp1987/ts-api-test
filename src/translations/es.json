@@ -22,6 +22,10 @@
     "i18n_common_first_name": "Nombre",
     "i18n_common_last_name": "Apellidos",
     "i18n_common_description": "Descripción",
+    "i18n_common_fechacreacion": "Fecha creación",
+    "i18n_common_fechaultmod": "Fecha últ. mod.",
+    "i18n_common_usuario_creacion": "Usuario creación",
+    "i18n_common_usuario_ult_mod": "Usuario últ. mod.",
 
     "i18n_clientes_title": "Clientes",
     "i18n_clientes_customer_type_codigo": "Código del tipo de cliente",

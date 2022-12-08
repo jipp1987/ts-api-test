@@ -3,7 +3,7 @@ import { generateUuid } from '../utils/helper-utils'
 
 import {
     ViewStates, ModalHelper, delete_from_localStorage_by_tab, SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR,
-    MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE, get_property_by_name
+    MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE, get_property_value_by_name
 } from "../utils/helper-utils";
 
 import DataTable from '../components/data-table';
@@ -178,7 +178,7 @@ export default class ViewController<T extends BaseEntity> extends CoreController
             switch (field_name) {
                 case 'viewState':
                     // Atributo de estado
-                    this.setState({ viewState: get_property_by_name(ViewStates, value) });
+                    this.setState({ viewState: get_property_value_by_name(ViewStates, value) });
                     break;
 
                 case 'rowLimit':

@@ -1,5 +1,5 @@
 import Serializable from '../model/serializable';
-import { number_format } from '../utils/helper-utils';
+import { number_format, dateToString } from '../utils/helper-utils';
 
 /**
  * Clase de ayuda para modelar las cabeceras de las tablas.
@@ -102,14 +102,15 @@ export default class DataTableHeader extends Serializable {
      * @param {*} value 
      * @returns value
      */
-    convert_value_as_header_format(value: number) {
+    convert_value_as_header_format(value: any) {
         if (value != null) {
             switch (this._field_format) {
                 case 'FLOAT':
                     return number_format(value, 2, ',', '.');
-                case 'INTEGER':
                 case 'DATE':
                 case 'DATETIME':
+                    return dateToString(value);
+                case 'INTEGER':
                 case 'NONE':
                 default:
                     return value;
