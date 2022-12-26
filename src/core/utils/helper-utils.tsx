@@ -64,13 +64,6 @@ export const APIActionCodes = {
 }
 
 /**
- * Códigos de acción para la API.
- */
-export const SelectActions = {
-    COUNT: 1,
-}
-
-/**
  * Accede a un miembro de un objeto a partir de un string, por ejemplo: nested1.nested2
  * 
  * @param {*} path 

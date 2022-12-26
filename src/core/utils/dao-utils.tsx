@@ -65,10 +65,6 @@ export class FilterClause extends Serializable {
      */
     field_name: string;
     /**
-     * Alias de la tabla.
-     */
-    table_alias: string | null;
-    /**
      * Tipo de filtro.
      */
     filter_type: string;
@@ -86,13 +82,12 @@ export class FilterClause extends Serializable {
     related_filter_clauses: Array<FilterClause> | null;
 
     // Constructor.
-    constructor(field_name: string, filter_type: string, object_to_compare: any, table_alias: string | null = null, operator_type: string | null = null,
+    constructor(field_name: string, filter_type: string, object_to_compare: any, operator_type: string | null = null,
         related_filter_clauses: Array<FilterClause> | null = null) {
         super();
         this.field_name = field_name;
         this.filter_type = filter_type;
         this.object_to_compare = object_to_compare;
-        this.table_alias = table_alias;
         this.operator_type = operator_type == null ? OperatorTypes.AND : operator_type;
         this.related_filter_clauses = related_filter_clauses;
     }
@@ -111,7 +106,6 @@ export class FilterClause extends Serializable {
             clause_.field_name,
             clause_.filter_type,
             clause_.object_to_compare,
-            clause_.table_alias,
             clause_.operator_type,
             clause_.related_filter_clauses
         )

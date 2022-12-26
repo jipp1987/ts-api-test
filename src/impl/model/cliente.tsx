@@ -2,6 +2,8 @@ import BaseEntity from './../../core/model/base_entity';
 import TipoCliente from './tipo_cliente';
 import Usuario from './usuario';
 
+import { get_property_value_by_name } from "./../../core/utils/helper-utils";
+
 /**
  * Modelo de entidad cliente.
  */
@@ -17,7 +19,7 @@ export default class Cliente extends BaseEntity {
     usuario_ult_mod: Usuario | null;
 
     // CONTRUCTOR
-    constructor(id: number, codigo: string, saldo: number | null = null, tipo_cliente: TipoCliente, nombre: string, apellidos: string,
+    constructor(id: number, codigo: string, saldo: number | null = null, tipo_cliente: TipoCliente | null, nombre: string, apellidos: string,
         usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null) {
         super();
         this.id = id;
@@ -39,6 +41,49 @@ export default class Cliente extends BaseEntity {
     getPropertiesList() {
         const json_props = ['id', 'codigo', 'saldo', 'tipo_cliente', 'nombre', 'apellidos', 'usuario_creacion', 'usuario_ult_mod'];
         return json_props;
+    }
+
+    /**
+     * Deserializa un objeto json.
+     * 
+     * @param serialized 
+     * @returns Cliente
+     */
+    public static fromJSON(serialized: any): Cliente {
+        let object_clause: ReturnType<Cliente["toObject"]>;
+        
+        // Si fuese un string, parsearlo
+        if (typeof serialized === 'string') {
+            object_clause = JSON.parse(serialized);
+        } else {
+            object_clause = serialized;
+        }
+        
+        // Comprobar objetos anidados
+        // Usuarios
+        Usuario.checkUsuariosFromJsonObject(object_clause);
+
+        // Tipo de cliente
+        if (get_property_value_by_name(object_clause, "tipo_cliente") === undefined) {
+            Object.assign(object_clause, { tipo_cliente: null });
+        }
+        // Si no es null, parsearlo desde json
+        if (get_property_value_by_name(object_clause, "tipo_cliente") !== null) {
+            Object.assign(object_clause, { tipo_cliente: TipoCliente.fromJSON(get_property_value_by_name(object_clause, "tipo_cliente")) });
+        }
+        
+        const clause_ = object_clause as Cliente;
+
+        return new Cliente(
+            clause_.id,
+            clause_.codigo,
+            clause_.saldo,
+            clause_.tipo_cliente,
+            clause_.nombre,
+            clause_.apellidos,
+            clause_.usuario_creacion,
+            clause_.usuario_ult_mod
+        )
     }
 
 }

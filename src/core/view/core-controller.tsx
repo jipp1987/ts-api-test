@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
-import { ViewStates, SelectActions, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
+import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause, AggregateFunctionTypes } from '../utils/dao-utils';
+import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
 
-import { APIActionCodes } from '../utils/helper-utils';
+// import { APIActionCodes } from '../utils/helper-utils';
 import { trackPromise } from 'react-promise-tracker';
 import { FormattedMessage } from "react-intl";
 
@@ -160,7 +160,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      */
     getRequestOptions(controllerState: string | null = null, fields: Array<FieldClause> | null = null, joins: Array<JoinClause> | null = null,
         filters: Array<FilterClause> | null = null, group_by: Array<GroupByClause> | null = null,
-        order: Array<OrderByClause> | null = null, select_action: number | null = null): RequestInit {
+        order: Array<OrderByClause> | null = null): RequestInit {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -180,8 +180,8 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 }
 
                 // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
-                const id_value: string | number | null = get_property_value_by_name(this.selectedItem, this.entity_class.getIdFieldName());
-                const action = id_value !== undefined && id_value !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
+                // const id_value: string | number | null = get_property_value_by_name(this.selectedItem, this.entity_class.getIdFieldName());
+                // const action = id_value !== undefined && id_value !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
 
                 request_body = {
                     username: null,
@@ -273,6 +273,20 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
     }
 
     /**
+     * Devuelve el valor del campo id del elemento seleccionado.
+     * 
+     * @returns string | null
+     */
+    protected getSelectedItemIdFieldValue(): string | null {
+        // Si el objeto tiene id, es una actualización 
+        const field_id_name = this.entity_class.getIdFieldName();
+        const field_id = get_property_value_by_name(this.selectedItem, field_id_name);
+        const id = field_id !== undefined && field_id !== null ? field_id : null;
+
+        return id;
+    }
+
+    /**
      * Maneja el evento de envío del objeto a la api.
      * 
      * @param {event} e Evento de javascript. 
@@ -310,7 +324,15 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
 
         // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
         if (this.selectedItem.errorMessagesInForm.size === 0) {
-            const promise = this.makeRequestToAPI(null, this.getRequestOptions());
+            var url: string = properties.apiUrl + "/create";
+
+            // Si el objeto tiene id, es una actualización 
+            const id = this.getSelectedItemIdFieldValue();
+            if (id !== null) {
+                url = properties.apiUrl + "/update";
+            }
+
+            const promise = this.makeRequestToAPI(url, this.getRequestOptions());
 
             if (promise !== undefined) {
                 promise.then((result) => {
@@ -494,7 +516,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 if (i === 0) {
                     filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText));
                 } else {
-                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText, null, OperatorTypes.OR));
+                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText, OperatorTypes.OR));
                 }
             }
 
@@ -667,30 +689,30 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         const filters: Array<FilterClause> = [new FilterClause(field_code_name_, FilterTypes.EQUALS, codigo)];
 
         // Necesito el id por si fuera una actualización, para que no valide el código sobre sí mismo.
-        const field_id_name = this.entity_class.getIdFieldName();
-        const field_id = get_property_value_by_name(item_to_check, field_id_name);
-        const id = field_id !== undefined && field_id !== null ? field_id : null;
-
+        const id = this.getSelectedItemIdFieldValue();;
         if (id !== null) {
             // Si tiene id, añadir un filtro para excluir el recuento sobre sí mismo
-            filters.push(new FilterClause(field_id_name, FilterTypes.NOT_EQUALS, id));
+            filters.push(new FilterClause(this.entity_class.getIdFieldName(), FilterTypes.NOT_EQUALS, id));
         }
 
         // Añadir los filtros adicionales si los hubiera
         if (additional_filters !== null && additional_filters.length > 0) {
-            additional_filters.map((f: FilterClause) => {
-                filters.push(f);
-            });
+            for (let i = 0; i < additional_filters.length; i++) {
+                filters.push(additional_filters[i]);
+            }
         }
 
+        // Añadir un field count(id)
+        const fields: Array<FieldClause> = [new FieldClause(this.entity_class.getIdFieldName(), AggregateFunctionTypes.COUNT)];
+
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        const result = await this.makeRequestToAPI(properties.apiUrl + "/select", this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT));
+        const result = await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, fields, null, filters, null, null));
 
         // Determinar el resultado
         if (result !== undefined && result !== null) {
             if (result['success'] === true) {
                 // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                var count = result['response_object'];
+                const count: number = result['response_object'];
 
                 if (count !== undefined && count !== null && count > 0) {
                     // Avisar al usuario

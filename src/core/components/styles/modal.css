@@ -27,7 +27,7 @@
   }
 
   .close-button-div {
-    float: right;
+    /** float: right; **/
     width: auto;
   }
   

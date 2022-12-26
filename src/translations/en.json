@@ -9,6 +9,7 @@
 
     "i18n_error_codeAlreadyExists": "A record with the code {0} already exists.",
     "i18n_error_stringIsNotNumber": "The text entered is not numeric.",
+    "i18n_error_generic": "There was an error during the operation; please contact the administrator of the tool.",
 
     "i18n_common_yes": "Yes",
     "i18n_common_no": "No",
@@ -26,6 +27,7 @@
     "i18n_common_fechaultmod": "Last mod. date",
     "i18n_common_usuario_creacion": "Creation user",
     "i18n_common_usuario_ult_mod": "Last mod. user",
+    "i18n_common_name": "Name",
 
     "i18n_clientes_title": "Customers",
     "i18n_clientes_customer_type_codigo": "Customer type code",

@@ -64,8 +64,6 @@ export default class TipoCliente extends BaseEntity {
 
         const clause_ = object_clause as TipoCliente;
 
-        console.log(clause_);
-
         return new TipoCliente(
             clause_.id,
             clause_.codigo,
