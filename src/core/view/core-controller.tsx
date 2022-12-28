@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause, AggregateFunctionTypes } from '../utils/dao-utils';
+import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
 import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
@@ -702,11 +702,8 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             }
         }
 
-        // Añadir un field count(id)
-        const fields: Array<FieldClause> = [new FieldClause(this.entity_class.getIdFieldName(), AggregateFunctionTypes.COUNT)];
-
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        const result = await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, fields, null, filters, null, null));
+        const result = await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null));
 
         // Determinar el resultado
         if (result !== undefined && result !== null) {

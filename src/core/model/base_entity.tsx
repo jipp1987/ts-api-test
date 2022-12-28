@@ -1,4 +1,4 @@
-import { generateUuid, get_property_value_by_name, stringToDateTime } from '../utils/helper-utils'
+import { generateUuid, get_property_value_by_name, stringToDateTime, dateToString } from '../utils/helper-utils'
 import Serializable from './serializable';
 
 export default abstract class BaseEntity extends Serializable {
@@ -50,8 +50,8 @@ export default abstract class BaseEntity extends Serializable {
     public static getIdFieldName(): string {
         return "id";
     }
-
-    /**
+    
+   /**
     * Devuelve un diccionario con las propiedades del objeto para enviarlo como json a una api.
     */
     public toJsonDict(): { [key: string]: any } {
@@ -70,7 +70,12 @@ export default abstract class BaseEntity extends Serializable {
                 if (this[dynamicKey] !== null && this[dynamicKey] instanceof BaseEntity) {
                     json_dict[json_properties[i]] = (this[dynamicKey] as BaseEntity).toJsonDict();
                 } else {
-                    json_dict[json_properties[i]] = this[dynamicKey];
+                    if (this[dynamicKey] instanceof Date) {
+                        // Si es una fecha, lo devuelvo como string
+                        json_dict[json_properties[i]] = dateToString(this[dynamicKey] as Date);
+                    } else {
+                        json_dict[json_properties[i]] = this[dynamicKey];
+                    }
                 }
             }
         }
