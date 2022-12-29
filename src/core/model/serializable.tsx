@@ -19,13 +19,12 @@ export default abstract class Serializable {
      */
     public toObject() {
         // Creo un objeto vacío y voy completando los datos.
-        const object_result = {};
+        const object_result: { [key: string]: any } = {};
 
         // Obtengo un array de strings con las propiedades de la clase.
         const my_props = this.getPropertiesList();
 
         // Declaro el nuevo valor a añadir al objeto serializado así como la clave para el mapeo de la propiedad
-        let key_value: any;
         let attr: any;
         let value: any;
         let key: string;
@@ -51,13 +50,8 @@ export default abstract class Serializable {
                 value = attr;
             }
 
-            // Lo añado al mapa
-            key_value = {
-                key: value,
-            }
-            
             // Establezco el valor en el objeto resultado.
-            Object.assign(object_result, key_value);
+            object_result[key] = value;
         }
 
         return object_result;

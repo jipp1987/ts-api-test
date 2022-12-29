@@ -211,11 +211,61 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             case ViewStates.VALIDATE:
             default:
                 // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
-                const fields_param = fields !== undefined && fields !== null ? fields : this.fields;
-                const joins_param = joins !== undefined && joins !== null ? joins : this.joins;
-                const filters_param = filters !== undefined && filters !== null ? filters : this.filters;
-                const group_by_param = group_by !== undefined && group_by !== null ? group_by : this.group_by;
-                const order_param = order !== undefined && order !== null ? order : this.order;
+                const fields_to_check = fields !== undefined && fields !== null ? fields : this.fields;
+                const joins_to_check = joins !== undefined && joins !== null ? joins : this.joins;
+                const filters_to_check = filters !== undefined && filters !== null ? filters : this.filters;
+                const group_by_to_check = group_by !== undefined && group_by !== null ? group_by : this.group_by;
+                const order_to_check = order !== undefined && order !== null ? order : this.order;
+
+                var fields_param: Array<any> | null = null;
+                var joins_param: Array<any> | null = null;
+                var filters_param: Array<any> | null = null;
+                var group_by_param: Array<any> | null = null;
+                var order_param: Array<any> | null = null;
+
+                // Convierto a objeto serializable cada ítem del listado
+                if (fields_to_check !== undefined && fields_to_check !== null && fields_to_check.length > 0) {
+                    fields_param = [];
+                    for (let i = 0; i < fields_to_check.length; i++) {
+                        if (fields_to_check[i] !== undefined && fields_to_check[i] !== null) {
+                            fields_param[i] = fields_to_check[i].toObject();
+                        }
+                    }
+                }
+
+                if (joins_to_check !== undefined && joins_to_check !== null && joins_to_check.length > 0) {
+                    joins_param = [];
+                    for (let i = 0; i < joins_to_check.length; i++) {
+                        if (joins_to_check[i] !== undefined && joins_to_check[i] !== null) {
+                            joins_param[i] = joins_to_check[i].toObject();
+                        }
+                    }
+                }
+
+                if (filters_to_check !== undefined && filters_to_check !== null && filters_to_check.length > 0) {
+                    filters_param = [];
+                    for (let i = 0; i < filters_to_check.length; i++) {
+                        if (filters_to_check[i] !== undefined && filters_to_check[i] !== null) {
+                            filters_param[i] = filters_to_check[i].toObject();
+                        }
+                    }
+                }
+
+                if (group_by_to_check !== undefined && group_by_to_check !== null && group_by_to_check.length > 0) {
+                    order_param = [];
+                    for (let i = 0; i < group_by_to_check.length; i++) {
+                        if (group_by_to_check[i] !== undefined && group_by_to_check[i] !== null) {
+                            order_param[i] = group_by_to_check[i].toObject();
+                        }
+                    }
+                }
+
+                if (order_to_check !== undefined && order_to_check !== null && order_to_check.length > 0) {
+                    group_by_param = [];
+                    for (let i = 0; i < order_to_check.length; i++) {
+                        group_by_param[i] = order_to_check[i].toObject();
+                    }
+                }
 
                 request_body = {
                     username: null,
