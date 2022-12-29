@@ -187,7 +187,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                     username: null,
                     password: null,
                     entity: this.table_name,
-                    request_object: this.selectedItem.toJsonDict()
+                    request_object: this.selectedItem.toObject()
                 };
 
                 break;
@@ -202,7 +202,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                     username: null,
                     password: null,
                     entity: this.table_name,
-                    request_object: this.itemToDelete.toJsonDict()
+                    request_object: this.itemToDelete.toObject()
                 };
 
                 break;

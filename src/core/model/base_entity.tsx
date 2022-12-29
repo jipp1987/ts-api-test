@@ -50,11 +50,12 @@ export default abstract class BaseEntity extends Serializable {
     public static getIdFieldName(): string {
         return "id";
     }
-    
-   /**
-    * Devuelve un diccionario con las propiedades del objeto para enviarlo como json a una api.
-    */
-    public toJsonDict(): { [key: string]: any } {
+
+    // SOBRESCRITURA DE SERIALIZABLE
+    /**
+     * Devuelve un diccionario con las propiedades del objeto para enviarlo como json a una api.
+     */
+    public toObject(): { [key: string]: any } {
         // Obtengo las propiedades a exportar.
         const json_properties: string[] = this.getPropertiesList();
 
@@ -68,7 +69,7 @@ export default abstract class BaseEntity extends Serializable {
             if (this[dynamicKey] !== undefined) {
                 // Importante comprobar si alguna de las propiedades es un objeto que sea también una BaseEntity, en ese caso deberá llamar a su propio toJsonDict.
                 if (this[dynamicKey] !== null && this[dynamicKey] instanceof BaseEntity) {
-                    json_dict[json_properties[i]] = (this[dynamicKey] as BaseEntity).toJsonDict();
+                    json_dict[json_properties[i]] = (this[dynamicKey] as BaseEntity).toObject();
                 } else {
                     if (this[dynamicKey] instanceof Date) {
                         // Si es una fecha, lo devuelvo como string

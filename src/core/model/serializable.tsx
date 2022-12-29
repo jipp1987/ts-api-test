@@ -17,7 +17,7 @@ export default abstract class Serializable {
      * 
      * @returns {}
      */
-    protected toObject() {
+    public toObject() {
         // Creo un objeto vacío y voy completando los datos.
         const object_result = {};
 
