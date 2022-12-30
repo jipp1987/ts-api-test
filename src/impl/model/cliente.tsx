@@ -9,18 +9,18 @@ import { get_property_value_by_name } from "./../../core/utils/helper-utils";
  */
 export default class Cliente extends BaseEntity {
 
-    id: number;
-    codigo: string;
-    nombre: string;
-    apellidos: string;
+    id: number | null;
+    codigo: string | null;
+    nombre: string | null;
+    apellidos: string | null;
     saldo: number | null;
     tipo_cliente: TipoCliente | null;
     usuario_creacion: Usuario | null;
     usuario_ult_mod: Usuario | null;
 
     // CONTRUCTOR
-    constructor(id: number, codigo: string, saldo: number | null = null, tipo_cliente: TipoCliente | null, nombre: string, apellidos: string,
-        usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null) {
+    constructor(id: number | null = null, codigo: string | null = null, saldo: number | null = null, tipo_cliente: TipoCliente | null = null, nombre: string | null = null,
+        apellidos: string | null = null, usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null) {
         super();
         this.id = id;
         this.codigo = codigo;
@@ -51,14 +51,14 @@ export default class Cliente extends BaseEntity {
      */
     public static fromJSON(serialized: any): Cliente {
         let object_clause: ReturnType<Cliente["toObject"]>;
-        
+
         // Si fuese un string, parsearlo
         if (typeof serialized === 'string') {
             object_clause = JSON.parse(serialized);
         } else {
             object_clause = serialized;
         }
-        
+
         // Comprobar objetos anidados
         // Usuarios
         Usuario.checkUsuariosFromJsonObject(object_clause);
@@ -71,7 +71,7 @@ export default class Cliente extends BaseEntity {
         if (get_property_value_by_name(object_clause, "tipo_cliente") !== null) {
             Object.assign(object_clause, { tipo_cliente: TipoCliente.fromJSON(get_property_value_by_name(object_clause, "tipo_cliente")) });
         }
-        
+
         const clause_ = object_clause as Cliente;
 
         return new Cliente(

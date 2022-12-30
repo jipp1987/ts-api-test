@@ -6,12 +6,12 @@ import { get_property_value_by_name } from "./../../core/utils/helper-utils";
  */
 export default class Usuario extends BaseEntity {
 
-    id: number;
-    username: string;
-    password: string;
+    id: number | null;
+    username: string | null;
+    password: string | null;
 
     // CONTRUCTOR
-    constructor(id: number, username: string, password: string) {
+    constructor(id: number | null = null, username: string | null = null, password: string | null = null) {
         super();
         this.id = id;
         this.username = username;

@@ -1,4 +1,4 @@
-import { generateUuid, get_property_value_by_name, stringToDateTime, dateToString } from '../utils/helper-utils'
+import { generateUuid, get_property_value_by_name, stringToDateTime } from '../utils/helper-utils'
 import Serializable from './serializable';
 
 export default abstract class BaseEntity extends Serializable {
@@ -38,7 +38,7 @@ export default abstract class BaseEntity extends Serializable {
      * 
      * @returns {string} Nombre del campo código de la entidad.
      */
-    public getCodigoFieldName(): string {
+    public static getCodigoFieldName(): string {
         return "codigo";
     }
 

@@ -160,7 +160,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      */
     getRequestOptions(controllerState: string | null = null, fields: Array<FieldClause> | null = null, joins: Array<JoinClause> | null = null,
         filters: Array<FilterClause> | null = null, group_by: Array<GroupByClause> | null = null,
-        order: Array<OrderByClause> | null = null): RequestInit {
+        order: Array<OrderByClause> | null = null, target_entity?: string): RequestInit {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -169,6 +169,11 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
         if (controllerState !== undefined && controllerState !== null) {
             viewState = controllerState;
+        }
+
+        // Si no se ha especificado la entidad objetivo, se utiliza la del propio controlador de vista. 
+        if (target_entity === undefined || target_entity === null) {
+            target_entity = this.table_name;
         }
 
         switch (viewState) {
@@ -186,7 +191,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 request_body = {
                     username: null,
                     password: null,
-                    entity: this.table_name,
+                    entity: target_entity,
                     request_object: this.selectedItem.toObject()
                 };
 
@@ -201,7 +206,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 request_body = {
                     username: null,
                     password: null,
-                    entity: this.table_name,
+                    entity: target_entity,
                     request_object: this.itemToDelete.toObject()
                 };
 
@@ -270,7 +275,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 request_body = {
                     username: null,
                     password: null,
-                    entity: this.table_name,
+                    entity: target_entity,
                     request_object: {
                         fields: fields_param,
                         joins: joins_param,
@@ -548,14 +553,14 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
     /**
      * Método genérico para buscar resultados de un suggestion-box.
      * 
-     * @param {string} url API a la que se va a hacer la consulta.
      * @param {string} inputText Texto que se usará en los filtros por coincidencia.
      * @param {list} filter_fields Lista de strings con nombre de campos de la entidad a partir de los cuáles elaborar un filtro "Empieza por..." encadenado por operadores OR.
      * @param {list} select_fields Lista de strings con nombre de campos de la entidad que se desean mostrar en el listado de sugerencias.
      * @param {string} id_field_name Nombre del campo id de la entidad.
+     * @param {string} target_entity Entidad objetivo de la búsqueda.
      * @returns {list} Devuelve una lista de resultados obtenidos de la api, o bien una lista vacía si no encuentra nada.
      */
-    async suggestEntities(url: string, inputText: string, filter_fields: Array<string>, select_fields: Array<string>, id_field_name: string) {
+    async suggestEntities(inputText: string, filter_fields: Array<string>, select_fields: Array<string>, id_field_name: string, target_entity: string) {
         var list = [];
 
         if (inputText !== undefined && inputText !== null) {
@@ -582,7 +587,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
 
             // TODO Esto hay que revisarlo: tengo que pasar listados vacíos porque si paso null me coge los listados de cláusulas del propio controlador. 
             // Buscar una forma de poder pasar null o nada mejor.
-            const result = await this.makeRequestToAPI(url, this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], []), false);
+            const result = await this.makeRequestToAPI(properties.apiUrl + '/select', this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], [], target_entity), false);
 
             // Determinar el resultado
             if (result !== undefined && result !== null) {

@@ -7,16 +7,17 @@ import Usuario from './usuario';
  */
 export default class TipoCliente extends BaseEntity {
 
-    id: number;
-    codigo: string;
-    descripcion: string;
+    id: number | null;
+    codigo: string | null;
+    descripcion: string | null;
     usuario_creacion: Usuario | null;
     usuario_ult_mod: Usuario | null;
     fechacreacion: Date | null;
     fechaultmod: Date | null;
 
     // CONTRUCTOR
-    constructor(id: number, codigo: string, descripcion: string, usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null, 
+    constructor(id: number | null = null, codigo: string | null = null, descripcion: string | null = null,
+        usuario_creacion: Usuario | null = null, usuario_ult_mod: Usuario | null = null,
         fechacreacion: Date | null = null, fechaultmod: Date | null = null) {
         super();
         this.id = id;
@@ -45,20 +46,20 @@ export default class TipoCliente extends BaseEntity {
      * @param serialized 
      * @returns TipoCliente
      */
-     public static fromJSON(serialized: any): TipoCliente {
+    public static fromJSON(serialized: any): TipoCliente {
         let object_clause: ReturnType<TipoCliente["toObject"]>;
-        
+
         // Si fuese un string, parsearlo
         if (typeof serialized === 'string') {
             object_clause = JSON.parse(serialized);
         } else {
             object_clause = serialized;
         }
-        
+
         // Comprobar objetos anidados
         // Usuarios
         Usuario.checkUsuariosFromJsonObject(object_clause);
-        
+
         // Comprobar fechas del objeto plano
         super.checkDatesFromJsonObject(object_clause);
 
