@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateUuid } from '../utils/helper-utils';
+import { FormattedMessage } from "react-intl";
 import ImageButton from './image-button';
 
 import './styles/inputs.css';
@@ -199,18 +200,21 @@ interface ISuggestionBoxProps {
  */
 export default function SuggestionBox(props: ISuggestionBoxProps) {
     // Estado inicial a partir de las propiedades
-    const [value, setValue] = useState(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
-    const [isRequired, setIsRequired] = useState(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
-    const [entity, setEntity] = useState(props.entity);
-    const [isEditing, setIsEditing] = useState(props.isEditing);
-    const [result, setResult] = useState<any>(null);
+    const [value, setValue] = useState<string>(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
+    const [isRequired, setIsRequired] = useState<boolean>(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
+    const [entity, setEntity] = useState<any>(props.entity);
+    const [isEditing, setIsEditing] = useState<boolean | undefined>(props.isEditing);
+    const [result, setResult] = useState<Array<any> | null>(null);
 
-    const [focusOn, setFocusOn] = useState(false);
-    // Lo utilizo para prevenir que se llame a la búsqueda más de una vez
-    const [isSearching, setIsSearching] = useState(false);
+    const [focusOn, setFocusOn] = useState<boolean>(false);
+    // Lo utilizo para mostrar un mensaje mientras está buscando
+    const [isSearching, setIsSearching] = useState<boolean>(false);
+    // Timer para búsquedas
+    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
+
 
     // Rerenderizado utilizando el hook useEffect. Se utiliza para detectar cambios en los valores de estado y forzar el rerender del componente.
     useEffect(() => {
@@ -267,6 +271,16 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
             setFocusOn(false);
         }
     }, [focusOn]);
+
+    // Esto sería el componentWillUnmount: tengo que eliminar el timer cuando el suggestionbox vaya a desaparecer del DOM.
+    useEffect(() => {
+        // Dentro del return sería lo que va a ejecturarse al desaparecer el componente.
+        return () => {
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+        }
+    }, []);
 
     /**
      * Función para resetear la entidad si se ha click fuera de la división sin haber seleccionado objeto. 
@@ -336,19 +350,20 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
         entity[props.idFieldName] = null;
         setEntity(entity);
 
-        // Si ha introducido más de dos caracterres, comenzar acción de suggestion (revisar por qué sólo funciona con lenght > 1). Busco sólo si no hay búsqueda activa.
-        if (newValue !== undefined && newValue !== null && newValue.length > 1 && !isSearching) {
+        // Si ha introducido más de dos caracterres, comenzar acción de suggestion (revisar por qué sólo funciona con length > 1).
+        if (newValue !== undefined && newValue !== null && newValue.length > 1) {
             // Activo el modo de búsqueda activa
             setIsSearching(true);
             
             // Establezco un timeout para que no empiece a buscar hasta pasado unos milisegundos y dar tiempo a que el usuario termine de escribir
-            setTimeout(async () => {
+            setTimer(setTimeout(async () => {
+                // Búsqueda asíncrona
                 setResult(await props.suggestAction(newValue));
                 // Visualizar la tabla de resultados
                 setIsResultTableVisible(true);
                 // Desactivo el modo de búsqueda activa
                 setIsSearching(false);
-            }, 500)
+            }, 500));
         }
     }
 
@@ -381,6 +396,9 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     // Botón de búsqueda
     const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={props.findAction} />
 
+    // Etiqueta de búsqueda activa
+    const searchMessage = isSearching ? <FormattedMessage id="i18n_common_searching" /> : null;
+
     // Tiene posición relativa porque la tabla interior de suggestion-box debe tenerla absoluta para así solapar cualquier elemento que tenga debajo. 
     return (<div className="input-panel" style={{ position: 'relative' }} ref={wrapperRef}>
 
@@ -410,6 +428,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
         </div>
 
         {suggestionTable}
+        {searchMessage}
 
     </div>);
 
