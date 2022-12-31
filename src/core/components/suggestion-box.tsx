@@ -206,6 +206,8 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const [result, setResult] = useState<any>(null);
 
     const [focusOn, setFocusOn] = useState(false);
+    // Lo utilizo para prevenir que se llame a la búsqueda más de una vez
+    const [isSearching, setIsSearching] = useState(false);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
@@ -221,7 +223,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
 
     // Si cambia la entidad asociada, debe volver a renderizarse.
     useEffect(() => {
-         setValue(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
+        setValue(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
     }, [props.entity, props.valueName]);
 
     // Para detectar el click fuera del componente
@@ -284,7 +286,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     /**
      * Manejar presionado de teclas mientras está puesto el foco sobre el input.
      * 
-     * @param {event*} e 
+     * @param {event} e 
      */
     const handleKeyDown = (e: React.KeyboardEvent): any => {
         switch (e.key) {
@@ -324,8 +326,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
      */
     const handleChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         // Tras un cambio en el input, actualizo también la entidad del modelo
-        var newValue = event.target.value;
-
+        var newValue: string = event.target.value;
         // El cambio de estado es tanto del valor del input como de la entidad, para mantenerla actualizada 
         setValue(newValue);
 
@@ -335,11 +336,19 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
         entity[props.idFieldName] = null;
         setEntity(entity);
 
-        // Si ha introducido más de un caracter, comenzar acción de suggestion
-        if (newValue !== undefined && newValue !== null && newValue.length > 1) {
-            setResult(await props.suggestAction(newValue));
-            // Visualizar la tabla de resultados
-            setIsResultTableVisible(true);
+        // Si ha introducido más de dos caracterres, comenzar acción de suggestion (revisar por qué sólo funciona con lenght > 1). Busco sólo si no hay búsqueda activa.
+        if (newValue !== undefined && newValue !== null && newValue.length > 1 && !isSearching) {
+            // Activo el modo de búsqueda activa
+            setIsSearching(true);
+            
+            // Establezco un timeout para que no empiece a buscar hasta pasado unos milisegundos y dar tiempo a que el usuario termine de escribir
+            setTimeout(async () => {
+                setResult(await props.suggestAction(newValue));
+                // Visualizar la tabla de resultados
+                setIsResultTableVisible(true);
+                // Desactivo el modo de búsqueda activa
+                setIsSearching(false);
+            }, 500)
         }
     }
 
@@ -370,7 +379,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
     // Botón de búsqueda
-    const findButton = <ImageButton style={{marginLeft: '5px'}} className='find-button' onClick={props.findAction} />
+    const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={props.findAction} />
 
     // Tiene posición relativa porque la tabla interior de suggestion-box debe tenerla absoluta para así solapar cualquier elemento que tenga debajo. 
     return (<div className="input-panel" style={{ position: 'relative' }} ref={wrapperRef}>

@@ -40,17 +40,17 @@ interface IImageButtonProps {
  */
 export default function ImageButton({id, title, type, style, className, onClick}: IImageButtonProps) {
     // Comprobar si ha llegado un tipo
-    var type = type;
+    var type_ = type;
     if (type === undefined || type === null) {
         // Botón por defecto
         type = 'button';
     }
 
     // Lo mismo con el id
-    var id = id;
-    if (id === undefined || id === null) {
+    var id_ = id;
+    if (id_ === undefined || id_ === null) {
         // Si no ha llegado id alguno, establecer uno por defecto
-        id = generateUuid();
+        id_ = generateUuid();
     }
 
     const label = title !== undefined && title !== null ? 
@@ -58,7 +58,7 @@ export default function ImageButton({id, title, type, style, className, onClick}
 
     return (
         <div className='btn-container'>
-            <button className="custom-button" id={id} type={type} onClick={onClick} style={style}>
+            <button className="custom-button" id={id_} type={type_} onClick={onClick} style={style}>
                 <span className={'image-button ' + className}></span>
                 {label}
             </button>

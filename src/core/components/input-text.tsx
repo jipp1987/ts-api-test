@@ -62,7 +62,7 @@ export default function MyInput(props: IInputTextProps) {
     const [isRequired, setIsRequired] = useState(isRequiredProps);
     const [entity, setEntity] = useState(props.entity);
     const [isEditing, setIsEditing] = useState(isEditingProps);
-    const [result, setResult] = useState(null);
+    // const [result, setResult] = useState(null);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
