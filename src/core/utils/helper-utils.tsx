@@ -1,37 +1,6 @@
 import uuid from 'react-uuid';
 import moment from 'moment';
 
-// Definición de tokens para almacenamiento en localStorage
-/**
- * Cadena para delimitar los distintos tokens del identificador.
- */
-export const SAVE_DELIMITER: string = "$$";
-/**
- * Separador para el identificador del token.
- */
-export const SAVE_SEPARATOR = "@@";
-/**
- * Token para indicar la pestaña.
- */
-export const TAB_SAVE_SEPARATOR = "tab";
-/**
- * Token para identificar el modal en caso de que sea un controlador modal.
- */
-export const MODAL_SAVE_SEPARATOR = "modal";
-/**
- * Token para identificar la propiedad.
- */
-export const PROPERTY_SAVE_SEPARATOR = "property";
-/**
- * Token para identificar si es variable de estado o no.
- */
-export const STATE_SAVE_SEPARATOR = "state";
-
-/**
- * Identificador para pestañas que van a ser eliminadas. Se utiliza para que al cerrar una pestaña, componentWillUnmount no vuelva a guardar los datos en localStorage.
- */
-export const TAB_TO_DELETE = "dontSaveThisTab";
-
 // Otros campos
 
 /**
@@ -167,28 +136,6 @@ export function forceOnBlur() {
             return (element as HTMLElement).blur();
         }
     });
-}
-
-/**
- * Elimina los datos de localStorage correspondientes a una pestaña.
- * 
- * @param {number} tab 
- */
-export function delete_from_localStorage_by_tab(tab: number): void {
-    const keys_to_delete = [];
-
-    let key: string | null;
-    for (let i = 0; i < localStorage.length; i++) {
-        key = localStorage.key(i);
-
-        if (key !== undefined && key !== null && key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
-            keys_to_delete.push(key);
-        }
-    }
-
-    for (let i = 0; i < keys_to_delete.length; i++) {
-        localStorage.removeItem(keys_to_delete[i]);
-    }
 }
 
 /**

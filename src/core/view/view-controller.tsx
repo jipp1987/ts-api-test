@@ -1,10 +1,7 @@
 import React from 'react';
 import { generateUuid } from '../utils/helper-utils'
 
-import {
-    ViewStates, ModalHelper, delete_from_localStorage_by_tab, SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR,
-    MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE, get_property_value_by_name
-} from "../utils/helper-utils";
+import { ViewStates, ModalHelper } from "../utils/helper-utils";
 
 import DataTable from '../components/data-table';
 import ImageButton from '../components/image-button';
@@ -15,9 +12,7 @@ import { CoreController, ICoreControllerProps } from './core-controller';
 import { FormattedMessage } from "react-intl";
 
 import "./../components/styles/buttons.css";
-import { FieldClause, FilterClause, GroupByClause, JoinClause, OrderByClause } from '../utils/dao-utils';
 import BaseEntity from "../model/base_entity";
-import DataTableHeader from './table-header';
 
 
 /**
@@ -98,256 +93,11 @@ export default class ViewController<T extends BaseEntity> extends CoreController
     }
 
     /**
-     * Función para almecenar los datos del viewcontroller en almacenamiento local.
-     */
-    saveStateToLocalStorage() {
-        // Para almacenar la variable con localStorage, he de tener en cuenta tres cosas:
-        // 1. Pestaña del controlador
-        // 2. Modal (el controlador puede estar en un modal o en la ventana principal, pero si está en un modal hay que registrarlo)
-        // 3. Si es una propiedad del objeto o bien pertenece al estado del mismo
-
-        // TODO De momento no voy a guardar en localStorage los modales, pero si en algún momento lo hago es importante borrar de localstorage al cerrar el modal!!!
-        if (this.is_modal) {
-            return;
-        }
-
-        var k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + PROPERTY_SAVE_SEPARATOR + SAVE_SEPARATOR;
-
-        localStorage.setItem(k + "fields", JSON.stringify(this.fields));
-        localStorage.setItem(k + "filters", JSON.stringify(this.filters));
-        localStorage.setItem(k + "order", JSON.stringify(this.order));
-        localStorage.setItem(k + "joins", JSON.stringify(this.joins));
-        localStorage.setItem(k + "group_by", JSON.stringify(this.group_by));
-        localStorage.setItem(k + "headers", JSON.stringify(this.headers));
-        localStorage.setItem(k + "selectedItem", JSON.stringify(this.selectedItem));
-        localStorage.setItem(k + "itemToDelete", JSON.stringify(this.itemToDelete));
-        localStorage.setItem(k + "rowLimit", this.rowLimit.toString());
-
-        if (this.last_focus_element !== null && this.last_focus_element !== "") {
-            localStorage.setItem(k + "last_focus_element", this.last_focus_element);
-        }
-
-        // Guardo aparte el estado
-        k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + STATE_SAVE_SEPARATOR + SAVE_SEPARATOR;
-        localStorage.setItem(k + "viewState", this.state.viewState);
-        // localStorage.setItem(k + "modalList", JSON.stringify(this.state.modalList));
-    }
-
-    /**
-     * Restaura el estado desde localStore.
-     */
-    restoreStateFromLocalStore() {
-        // Recorrer lista de propiedades del objeto y a partir de localStorage ir completando datos
-        let key: string | null;
-        let value: any;
-        // La clave está formada por una serie de tokens los cuáles me van a informar sobre si la propiedad pertenece o no al controlador
-        let key_split;
-        let field_token;
-        let field_name;
-
-        // Voy recorriendo localStore y estableciendo valores
-        for (let i = 0; i < localStorage.length; i++) {
-            key = localStorage.key(i);
-
-            if (key === null) {
-                continue;
-            }
-
-            value = localStorage[key];
-
-            // Hago un split por el delimitador de cada idenficador
-            key_split = key.split(SAVE_DELIMITER);
-
-            // Tengo que comprobar que la pestaña (y el modal, si el controlador es modal) coinciden para no volcar los datos en el controller equivocado.
-            if (!key_split.includes(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab)) {
-                continue;
-            }
-
-            // Lo mismo para controllers de modal, siempre y cuando lo sea
-            if (this.is_modal && !key_split.includes(MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.modal_index)) {
-                continue;
-            }
-
-            // Si llega hasta aquí, es que la propiedad es del controlador
-
-            // El último valor siempre es el nombre del campo
-            field_token = key_split[key_split.length - 1];
-            field_name = field_token.split(SAVE_SEPARATOR)[1];
-
-            // Finalmente, tengo que revisar campo por campo para establecerlos correctamente desde json
-            switch (field_name) {
-                case 'viewState':
-                    // Atributo de estado
-                    this.setState({ viewState: get_property_value_by_name(ViewStates, value) });
-                    break;
-
-                case 'rowLimit':
-                    // Caso para números enteros
-                    this.rowLimit = parseInt(value);
-                    break;
-
-                case 'fields':
-                    this.fields = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                this.fields.push(FieldClause.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'filters':
-                    this.filters = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                this.filters.push(FilterClause.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'order':
-                    this.order = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                this.order.push(OrderByClause.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'joins':
-                    this.joins = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                this.joins.push(JoinClause.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'group_by':
-                    this.group_by = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                this.group_by.push(GroupByClause.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'headers':
-                    this.headers = [];
-
-                    if (value !== undefined && value !== null) {
-                        value = JSON.parse(value);
-
-                        if (value !== null) {
-                            for (let i = 0; i < value.length; i++) {
-                                console.log(value[i]);
-                                this.headers.push(DataTableHeader.fromJSON(value[i]));
-                            }
-                        }
-                    }
-
-                    break;
-
-                case 'selectedItem':
-                    this.selectedItem = value !== undefined && value !== null ? this.entity_class.from(JSON.parse(value)) : null;
-                    break;
-
-                case 'itemToDelete':
-                    this.itemToDelete = value !== undefined && value !== null ? this.entity_class.from(JSON.parse(value)) : null;
-                    break;
-
-                default:
-                    // Caso genérico para strings
-                    var newValues = {
-                        field_name: value,
-                    }
-                    Object.assign(this, newValues);
-                    break;
-            }
-        }
-    }
-
-    /**
      * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
     componentDidMount() {
-        // Restaurar estado y propiedades de la vista desde localStore
-        // this.restoreStateFromLocalStore();
-
         // Traer datos de la API
         this.fetchData();
-
-        // Eliminar los datos del controlador del localStorage después de montar el componente
-        // delete_from_localStorage_by_tab(this.props.tab);
-
-        // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
-        // window.addEventListener(
-        //     "beforeunload",
-        //     this.saveStateToLocalStorage.bind(this)
-        // );
-
-        // window.addEventListener(
-        //     "beforeunload",
-        //     this.restoreStateFromLocalStore.bind(this)
-        // );
-    }
-
-    /**
-     * Sobrescritura de componentWillUnmount para guardar los datos en localStorage al recargar la página. 
-     */
-    componentWillUnmount() {
-        // Guarda el estado pero sólo si el componente se desmonta sin haberse cerrado la pestaña (es decir, si se ha recargado la página).
-        // La función de cerrado de pestaña se lanza antes de desmontar el componente.
-        /*
-        if (localStorage.getItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab)) {
-            // Eliminar los datos del controlador del localStorage después de montar el componente
-            delete_from_localStorage_by_tab(this.props.tab);
-            // Si se ha cerrado la pestaña, no guardo los datos. Sí que elimino esta clave para evitar problemas.
-            localStorage.removeItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab);
-        } else {
-            this.saveStateToLocalStorage();
-        }
-
-        // Eliminar el listener definido en componentDidMount
-        window.removeEventListener(
-            "beforeunload",
-            this.saveStateToLocalStorage.bind(this)
-        );
-
-        window.removeEventListener(
-            "beforeunload",
-            this.restoreStateFromLocalStore.bind(this)
-        );
-        */
     }
 
     /**
@@ -655,7 +405,7 @@ export default class ViewController<T extends BaseEntity> extends CoreController
 
                     {toolbar}
 
-                    <div style={{ marginTop: '10px' }}>
+                    <div style={{ marginTop: '10px', padding: '10px 5px 10px 5px', backgroundColor: 'white', width: '99%', float: 'left' }}>
                         {editDetailForm}
                     </div>
 

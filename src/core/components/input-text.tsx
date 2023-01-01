@@ -167,7 +167,7 @@ export default function MyInput(props: IInputTextProps) {
 
             <label htmlFor={id} className="my-label">{label}</label>
 
-            <div style={{ float: 'left' }}>
+            <div style={{ marginLeft: '2px', float: 'left' }}>
 
                 <input
                     id={id}

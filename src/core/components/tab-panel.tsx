@@ -32,13 +32,6 @@ interface ITabPanelProps {
      * @returns Componente lazyload de react para carga dinámica.
      */
     get_component(content: string): any;
-    
-    /**
-     * Función para cerrar limpiar los datos de la pestaña en localStorage al cerrarla.
-     * 
-     * @param {number} tab 
-     */
-    cleanLocalDataOnTabClose(tab: number): void;
 }
 
 /**
@@ -124,11 +117,6 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
     onCloseTabItem = (tab: number) => {
         // Clono los datos del estado del TabPanel.
         let data = this.state.data.slice();
-
-        // Eliminar la pestaña de almacenamiento local
-        if (this.props.cleanLocalDataOnTabClose !== undefined) {
-            this.props.cleanLocalDataOnTabClose(tab);
-        }
 
         const { activeTab } = this.state;
 

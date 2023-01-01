@@ -5,7 +5,6 @@ import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
 import { VIEW_MAP } from './impl/view/view_map';
-import { SAVE_SEPARATOR, TAB_TO_DELETE } from "src/core/utils/helper-utils";
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
@@ -89,21 +88,6 @@ export default function App() {
     return require("src/" + route).default;
   }
 
-  /**
-   * Elimina datos de la pestaña de localStore. Pensado para el cierre de la pestaña.
-   * 
-   * @param {number} tab 
-   */
-  const delete_data_on_tab_close = (tab: number) => {
-    // Borro todo localStorage, puesto que las pestañas se han reordenado.
-    localStorage.clear();
-
-    // Guardo en localStorage la pestaña que se va a cerrar para evitar que componentWillUnmount del viewController vuelva a 
-    // guardar los datos (habrá que eliminar luego esta clave desde el controlador). Lo guardo como "true" para marcarlo de alguna forma, 
-    // no puedo usar booleans.
-    localStorage.setItem(TAB_TO_DELETE + SAVE_SEPARATOR + tab, "true");
-  }
-
   return (
     <IntlProvider locale={lang} messages={messages.get(lang)}>
       <div id="main">
@@ -141,21 +125,28 @@ export default function App() {
                   className: '',
                   duration: 5000,
                   style: {
-                    background: '#363636',
-                    color: '#fff',
+                    background: 'ghostwhite',
+                    color: '#000000',
                   },
                   // Default options for specific types
                   success: {
                     duration: 3000,
-                    theme: {
-                      primary: 'green',
-                      secondary: 'black',
+                    style: {
+                      color: 'green',
+                      backgroundColor: 'ghostwhite'
+                    },
+                  },
+                  // Default options for specific types
+                  error: {
+                    duration: 3000,
+                    style: {
+                      color: 'red',
+                      backgroundColor: 'ghostwhite'
                     },
                   },
                 }} />
 
-              <TabPanel get_component={(route) => get_lazy_component(route)} ref={tabPanel}
-                cleanLocalDataOnTabClose={(tab) => delete_data_on_tab_close(tab)} />
+              <TabPanel get_component={(route) => get_lazy_component(route)} ref={tabPanel} />
 
             </div>
           </div>
