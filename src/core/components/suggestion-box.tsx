@@ -209,8 +209,10 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const [focusOn, setFocusOn] = useState<boolean>(false);
     // Lo utilizo para mostrar un mensaje mientras está buscando
     const [isSearching, setIsSearching] = useState<boolean>(false);
-    // Timer para búsquedas
-    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+
+    // Timer para búsquedas: lo declaro como referencia porque si lo declarase como estado forzaría el rerenderizado del componente y por tanto al intentar eliminar
+    // el timer al desmontar el componente no funcionaría al ser diferente tras cada rerenderizado.
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
@@ -276,8 +278,8 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     useEffect(() => {
         // Dentro del return sería lo que va a ejecturarse al desaparecer el componente.
         return () => {
-            if (timer !== null) {
-                clearTimeout(timer);
+            if (timerRef !== null) {
+                clearTimeout(timerRef.current as unknown as NodeJS.Timeout);
             }
         }
     }, []);
@@ -356,14 +358,14 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
             setIsSearching(true);
             
             // Establezco un timeout para que no empiece a buscar hasta pasado unos milisegundos y dar tiempo a que el usuario termine de escribir
-            setTimer(setTimeout(async () => {
+            timerRef.current = setTimeout(async () => {
                 // Búsqueda asíncrona
                 setResult(await props.suggestAction(newValue));
                 // Visualizar la tabla de resultados
                 setIsResultTableVisible(true);
                 // Desactivo el modo de búsqueda activa
                 setIsSearching(false);
-            }, 500));
+            }, 500);
         }
     }
 
