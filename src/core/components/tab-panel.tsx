@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import Tab from './tab';
 
-import { generateUuid } from '../utils/helper-utils'
+import { generateUuid } from '../utils/helper-utils';
+
 import './styles/tabs.css';
 
 
@@ -54,49 +55,6 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
             activeTab: null,
             data: []
         };
-    }
-
-    /**
-     * Función para almecenar los datos del tabpanel en almacenamiento local.
-     */
-     saveStateToLocalStorage() {
-        const { activeTab, data } = this.state;
-
-        localStorage.setItem('activeTab', JSON.stringify(activeTab));
-        localStorage.setItem('data', JSON.stringify(data));
-    }
-
-    /**
-     * Sobrescritura de componentDidMount para recuperar los datos de localStorage al cargar la página. 
-     */
-     componentDidMount() {
-        const json_activeTab: string | null = localStorage.getItem("activeTab"); 
-        const json_data: string | null = localStorage.getItem("data"); 
-        const v_activeTab: number | null = json_activeTab !== null ? JSON.parse(json_activeTab) : null;
-        const v_data: Array<DataTab> | null = json_data !== null ? JSON.parse(json_data) : null;
-
-        // OJO!!! Vigilar que los datos almacenados en localStorage no sean null, sino provocará errores.
-        this.setState({ activeTab: v_activeTab, data: (v_data !== null ? v_data : []) });
-
-        // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
-        window.addEventListener(
-            "beforeunload",
-            this.saveStateToLocalStorage.bind(this)
-        );
-    }
-
-    /**
-     * Sobrescritura de componentWillUnmount para guardar los datos en localStorage al recargar la página. 
-     */
-    componentWillUnmount() {
-        // Eliminar el listener definido en componentDidMount
-        window.removeEventListener(
-            "beforeunload",
-            this.saveStateToLocalStorage.bind(this)
-        );
-
-        // Guarda el estado
-        this.saveStateToLocalStorage();
     }
 
     /**

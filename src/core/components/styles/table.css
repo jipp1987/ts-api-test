@@ -5,7 +5,25 @@
     width: 100%;
 }
 
+.my-table-responsive {
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
 .my-table td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.my-table-responsive th {
+    background-color: rgb(108, 109, 116);
+    color: ghostwhite;
+}
+
+.my-table-responsive td, th {
     border: 1px solid #dddddd;
     text-align: left;
     padding: 8px;

@@ -29,6 +29,7 @@ interface IDataTableProps {
 interface IDataTableState {
     headers: Array<DataTableHeader>;
     data: Array<BaseEntity>;
+    screenIsbig: boolean;
 }
 
 /**
@@ -52,7 +53,29 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
         this.state = {
             headers: props.headers,
             data: props.data,
+            screenIsbig: true
         }
+    }
+
+    /**
+     * Función para controlar el redimensionado de la pantalla y modificar en consecuencia el estado del componente.
+     */
+    private handleResize(): void {
+        if(window.innerWidth < 1200) {
+            this.setState({screenIsbig: false})
+        } else {
+            this.setState({screenIsbig: true});
+        }
+    }
+
+    // Sobrescritura de componentDidMount para añadir un listener con el que se enlaza al componente la función de redimensionado.
+    componentDidMount() {
+        window.addEventListener('resize', this.handleResize.bind(this));
+    }
+
+    // Sobrescritura de componentWillUnmount para eliminar el el listener de eventos de la ventana.
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleResize.bind(this));
     }
 
     // Sobrescribo este método estático para mantener el componente actualizado ante cualquier cambio en los datos.
@@ -161,9 +184,16 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
         // Defino las cabeceras. Observar que estoy pintando flechas en función del estado del orden de la cabecera usando el valor decimal de los símbolos unicode.
         const headers_render = this.renderHeaders(headers);
 
+        // Comprobar el tamaño de pantalla
+        var style = "my-table";
+        // Si es menor a 1200px, activar el modo responsive
+        if(!this.state.screenIsbig) {
+            style = "my-table-responsive";
+        }
+
         return (
             <div style={{ display: 'block' }}>
-                <table className="my-table">
+                <table className={style}>
                     <thead>
                         {headers_render}
                     </thead>
