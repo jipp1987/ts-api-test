@@ -2,6 +2,7 @@ import uuid from 'react-uuid';
 import moment from 'moment';
 
 // Otros campos
+export const BIG_SCREEN_WIDTH: number = 1200;
 
 /**
  * Estados y acciones de los controladores de vista.

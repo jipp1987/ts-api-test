@@ -2,7 +2,7 @@ import React from 'react'
 import { FormattedMessage } from "react-intl";
 import ImageButton from './image-button';
 
-import { resolve_property_by_string, generateUuid } from '../utils/helper-utils'
+import { resolve_property_by_string, generateUuid, BIG_SCREEN_WIDTH } from '../utils/helper-utils'
 import DataTableHeader from '../view/table-header'
 import BaseEntity from '../model/base_entity';
 
@@ -61,7 +61,7 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
      * Función para controlar el redimensionado de la pantalla y modificar en consecuencia el estado del componente.
      */
     private handleResize(): void {
-        if(window.innerWidth < 1200) {
+        if(window.innerWidth < BIG_SCREEN_WIDTH) {
             this.setState({screenIsbig: false})
         } else {
             this.setState({screenIsbig: true});
