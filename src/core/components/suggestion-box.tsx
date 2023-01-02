@@ -230,6 +230,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     // Si cambia la entidad asociada, debe volver a renderizarse.
     useEffect(() => {
         setValue(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
+        setEntity(props.entity);
     }, [props.entity, props.valueName]);
 
     // Para detectar el click fuera del componente

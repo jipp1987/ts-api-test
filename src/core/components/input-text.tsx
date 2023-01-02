@@ -19,6 +19,8 @@ interface IInputTextProps {
     size?: number;
     maxLength?: number;
     minLength?: number;
+    isInteger?: boolean;
+    isFloat?: boolean;
 
     /**
      * Campo en estado de edición.
@@ -51,7 +53,7 @@ interface IInputTextProps {
  * 
  * @param props 
  */
-export default function MyInput(props: IInputTextProps) {
+export default function InputText(props: IInputTextProps) {
     // Comprobar posibles valores null.
     const isRequiredProps: boolean = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
     const isEditingProps: boolean = props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false;
@@ -70,6 +72,10 @@ export default function MyInput(props: IInputTextProps) {
     const maxLength = props.maxLength === undefined ? 50 : props.maxLength;
     // Si no se ha especificado tamaño, por defecto el máximo de caracteres más 5 para que sea un poco más grande y no quede mal
     const size = props.size !== null && props.size !== undefined ? props.size : maxLength + 5;
+
+    // Inputs numéricos
+    const isInteger = props.isInteger !== undefined && props.isInteger;
+    const isFloat = props.isFloat !== undefined && props.isFloat;
 
     // Rerenderizado utilizando el hook useEffect. Se utiliza para detectar cambios en los valores de estado y forzar el rerender del componente.
     useEffect(() => {
@@ -97,6 +103,17 @@ export default function MyInput(props: IInputTextProps) {
         // Tras un cambio en el input, actualizo también la entidad del modelo
         if (target !== undefined && target !== null && target.value !== undefined && target.value !== null) {
             var newValue = target.value;
+
+            // Validación para números
+            if (isFloat && !/^[+-]?\d*(?:[.]\d*)?$/.test(newValue)) {
+                e.preventDefault();
+                return false;
+            }
+
+            if (isInteger && !/^[+-]?\d+$/.test(newValue)) {
+                e.preventDefault();
+                return false;
+            }
 
             // Accedo a la propiedad del objeto usando keyof...
             const myVar = props.valueName as (keyof typeof entity_);
@@ -174,14 +191,14 @@ export default function MyInput(props: IInputTextProps) {
                     disabled={!isEditing ? true : false}
                     type="text"
                     className="my-input"
-                    onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
+                    onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                     onChange={(e) => handleChange(e)}
                     onBlur={(e) => onBlur(e)}
                     size={size}
                     maxLength={maxLength}
                     minLength={minLength}
                     value={value}
-                    style={{ float: 'left' }}
+                    style={ isFloat || isInteger ? { textAlign: 'right', float: 'left' } : { float: 'left' }}
                     required={isRequired ? true : false} />
 
                 {requiredLabel}

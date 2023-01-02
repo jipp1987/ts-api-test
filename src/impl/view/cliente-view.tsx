@@ -7,11 +7,11 @@ import { ICoreControllerProps } from '../../core/view/core-controller';
 import Cliente from '../model/cliente';
 import TipoCliente from '../model/tipo_cliente';
 
-import { generateUuid, ViewValidators  } from './../../core/utils/helper-utils';
+import { generateUuid, ViewValidators } from './../../core/utils/helper-utils';
 import { VIEW_MAP } from './view_map';
 
 import { FormattedMessage } from "react-intl";
-import MyInput from './../../core/components/input-text';
+import InputText from './../../core/components/input-text';
 import SuggestionBox from './../../core/components/suggestion-box';
 
 /**
@@ -77,10 +77,10 @@ export default class ClienteView extends ViewController<Cliente> {
         ];
     }
 
-     /**
-     * Sobrescritura. Prepara una nueva instancia del elemento seleccionado para la creación.
-     */
-     prepareCreate() {
+    /**
+    * Sobrescritura. Prepara una nueva instancia del elemento seleccionado para la creación.
+    */
+    prepareCreate() {
         this.selectedItem = new Cliente();
         this.selectedItem.tipo_cliente = new TipoCliente();
     }
@@ -134,8 +134,8 @@ export default class ClienteView extends ViewController<Cliente> {
         if (this.selectedItem !== null) {
             return (
                 <div>
-    
-                    <MyInput
+
+                    <InputText
                         id={this.id + "_codigo"}
                         entity={this.selectedItem}
                         valueName="codigo"
@@ -144,8 +144,8 @@ export default class ClienteView extends ViewController<Cliente> {
                         isEditing={!isInDetailMode}
                         isRequired={true}
                         validation={() => this.validateEntity(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
-    
-                    <MyInput
+
+                    <InputText
                         id={this.id + "_nombre"}
                         entity={this.selectedItem}
                         valueName="nombre"
@@ -153,8 +153,8 @@ export default class ClienteView extends ViewController<Cliente> {
                         maxLength={50}
                         isEditing={!isInDetailMode}
                         isRequired={true} />
-    
-                    <MyInput
+
+                    <InputText
                         id={this.id + "_apellidos"}
                         entity={this.selectedItem}
                         valueName="apellidos"
@@ -162,7 +162,18 @@ export default class ClienteView extends ViewController<Cliente> {
                         maxLength={80}
                         isEditing={!isInDetailMode}
                         isRequired={false} />
-    
+
+                    <InputText
+                        id={this.id + "_saldo"}
+                        entity={this.selectedItem}
+                        valueName="saldo"
+                        label={<FormattedMessage id="i18n_clientes_saldo" />}
+                        maxLength={10}
+                        size={15}
+                        isFloat={true}
+                        isEditing={!isInDetailMode}
+                        isRequired={true} />
+
                     <SuggestionBox
                         id={this.id + "_tipoCliente"}
                         entity={this.selectedItem.tipo_cliente}
@@ -175,7 +186,7 @@ export default class ClienteView extends ViewController<Cliente> {
                         isEditing={!isInDetailMode}
                         isRequired={true}
                         findAction={() => this.openTipoClienteModal()} />
-    
+
                 </div>
             );
         } else {

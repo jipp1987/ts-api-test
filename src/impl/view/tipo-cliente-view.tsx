@@ -1,7 +1,7 @@
 import React from 'react';
 
 import DataTableHeader from '../../core/view/table-header';
-import MyInput from '../../core/components/input-text';
+import InputText from '../../core/components/input-text';
 import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
 import { ICoreControllerProps } from '../../core/view/core-controller';
@@ -87,7 +87,7 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
 
         return (
             <div>
-                <MyInput
+                <InputText
                     id={this.id + "_codigo"}
                     entity={this.selectedItem}
                     valueName="codigo"
@@ -97,7 +97,7 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
                     isRequired={true}
                     validation={() => this.validateEntity(this.selectedItem, "codigo", code_validators)} />
 
-                <MyInput
+                <InputText
                     id={this.id + "_descripcion"}
                     entity={this.selectedItem}
                     valueName="descripcion"
