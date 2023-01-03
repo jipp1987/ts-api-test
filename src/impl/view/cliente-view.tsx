@@ -52,10 +52,8 @@ export default class ClienteView extends ViewController<Cliente> {
          */
         this.fields = [
             new FieldClause("id", null),
-            new FieldClause("tipo_cliente.usuario_ult_mod.username", null),
             new FieldClause("codigo", null),
             new FieldClause("nombre", null),
-            new FieldClause("tipo_cliente.usuario_creacion.username", null),
             new FieldClause("tipo_cliente.codigo", null),
         ];
 
@@ -72,8 +70,6 @@ export default class ClienteView extends ViewController<Cliente> {
             new DataTableHeader(0, 'codigo', 'i18n_common_code', '80px', null),
             new DataTableHeader(1, 'nombre', 'i18n_common_name', '80px', null),
             new DataTableHeader(2, 'tipo_cliente.codigo', 'i18n_clientes_customer_type', '80px', null),
-            new DataTableHeader(3, 'tipo_cliente.usuario_creacion.username', 'i18n_common_usuario_creacion', '100px', null),
-            new DataTableHeader(4, 'tipo_cliente.usuario_ult_mod.username', 'i18n_common_usuario_ult_mod', '100px', null)
         ];
     }
 

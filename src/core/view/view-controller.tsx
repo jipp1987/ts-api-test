@@ -247,13 +247,8 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      * 
      * @param {entity_class} elementToSelect 
      */
-    prepareDetail = (elementToSelect: T): void => {
-        this.selectedItem = elementToSelect;
-
-        // Cambiar estado.
-        this.setState({
-            viewState: ViewStates.DETAIL
-        });
+    prepareDetail = (elementToSelect: T) => {
+        this.loadItem(elementToSelect, ViewStates.DETAIL);
     }
 
     /**
@@ -261,13 +256,8 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      * 
      * @param {entity_class} elementToSelect 
      */
-    prepareEdit = (elementToEdit: T): void => {
-        this.selectedItem = elementToEdit;
-
-        // Cambiar estado.
-        this.setState({
-            viewState: ViewStates.EDIT
-        });
+    prepareEdit = (elementToEdit: T) => {
+        this.loadItem(elementToEdit, ViewStates.EDIT);
     }
 
     /**

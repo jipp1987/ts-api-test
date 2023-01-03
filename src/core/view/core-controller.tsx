@@ -192,7 +192,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                     username: null,
                     password: null,
                     entity: target_entity,
-                    request_object: this.selectedItem.toObject()
+                    request_object: { entity_id: this.selectedItem.getIdFieldValue() }
                 };
 
                 break;
@@ -440,7 +440,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * 
      * @param {entity_class} Elemento a seleccionar. 
      */
-    loadItem = (elementToSelect: T) => {
+    loadItem = async (elementToSelect: T, newState: string | null = null) => {
         this.selectedItem = elementToSelect;
 
         const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptions(ViewStates.DETAIL));
@@ -450,11 +450,17 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 // Si el resultado ha sido correcto es un código 200
                 if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
                     this.selectedItem = this.entity_class.fromJSON(result['response_object']);
+                    // Cambiar estado.
+                    if (newState !== null) {
+                        this.setState({
+                            viewState: newState
+                        });
+                    }
                 } else {
                     toast.error(result['response_object']);
                     this.selectedItem = null;
                 }
-            });
+            }).catch(error => console.error(error));
         }
     }
 

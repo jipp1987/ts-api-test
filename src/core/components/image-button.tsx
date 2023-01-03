@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { FormattedMessage } from "react-intl";
 import { generateUuid } from '../utils/helper-utils'
@@ -33,12 +33,24 @@ interface IImageButtonProps {
      * @param params
      */
     onClick?(params?: any): any;
+    /**
+     * Botón habilitado.
+     */
+    disabled?: boolean;
 }
 
 /**
  * Botón con imagen.
  */
-export default function ImageButton({id, title, type, style, className, onClick}: IImageButtonProps) {
+export default function ImageButton({id, title, type, style, className, onClick, disabled}: IImageButtonProps) {
+    // Defino habilitado como atributo de estado del componente porque puede habilitarse/desabilitarse durante un rerender
+    const [enabled, setEnabled] = useState<boolean>(disabled !== undefined && disabled === true ? false : true);
+
+    // Utilizo un hook para forzar el rerender el componente en caso de que se cambie el estado de este atributo
+    useEffect(() => {
+        setEnabled(enabled);
+    }, [enabled]);
+
     // Comprobar si ha llegado un tipo
     var type_ = type;
     if (type === undefined || type === null) {
@@ -53,12 +65,14 @@ export default function ImageButton({id, title, type, style, className, onClick}
         id_ = generateUuid();
     }
 
+
+    // Etiqueta del botón
     const label = title !== undefined && title !== null ? 
         <span className='btn-text'><FormattedMessage id={title} /></span> : null;
 
     return (
-        <div className='btn-container'>
-            <button className="custom-button" id={id_} type={type_} onClick={onClick} style={style}>
+        <div className={enabled ? 'btn-container': 'btn-container-disabled'}>
+            <button className="custom-button" id={id_} type={type_} onClick={onClick} style={style} disabled={!enabled}>
                 <span className={'image-button ' + className}></span>
                 {label}
             </button>

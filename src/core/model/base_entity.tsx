@@ -52,6 +52,26 @@ export default abstract class BaseEntity extends Serializable {
     }
 
     /**
+     * Devuelve el valor del campo id.
+     * 
+     * @returns Valor del campo id. Devuelve null si fuese undefined.
+     */
+    public getIdFieldValue(): any {
+        const idValue = get_property_value_by_name(this, BaseEntity.getIdFieldName()); 
+        return idValue !== undefined ? idValue : null;
+    }
+
+    /**
+     * Devuelve el valor del campo código.
+     * 
+     * @returns Valor del campo código. Devuelve null si fuese undefined.
+     */
+    public getCodigoFieldValue(): any {
+        const codigoValue = get_property_value_by_name(this, BaseEntity.getCodigoFieldName()); 
+        return codigoValue !== undefined ? codigoValue : null;
+    }
+
+    /**
      * Comprueba las fechas en un objeto plano de JS para el parseo de json a objeto.
      * 
      * @param object_clause Objeto JS plano.

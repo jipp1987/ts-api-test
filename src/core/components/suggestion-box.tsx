@@ -397,7 +397,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
     // Botón de búsqueda
-    const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={props.findAction} />
+    const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={props.findAction} disabled={!isEditing ? true : false} />
 
     // Etiqueta de búsqueda activa
     const searchMessage = isSearching ? <FormattedMessage id="i18n_common_searching" /> : null;

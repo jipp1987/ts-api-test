@@ -31,6 +31,16 @@
     cursor: pointer;
 }
 
+.btn-container-disabled {
+    display: flex;
+    opacity: 0.5;
+}
+
+.btn-container-disabled button {
+    cursor: default !important;
+    pointer-events: all !important;
+}
+
 .btn-container:hover {
     opacity: 0.5;
 }
