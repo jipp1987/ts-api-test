@@ -4,10 +4,13 @@ import ViewController from '../../core/view/view-controller';
 import { ICoreControllerProps } from '../../core/view/core-controller';
 import Usuario from '../model/usuario';
 
+import InputText from '../../core/components/input-text';
+import { FormattedMessage } from "react-intl";
+
 /**
  * @class Controlador de mantenimiento de clientes.
  */
- export default class UsuarioView extends ViewController<Usuario> {
+export default class UsuarioView extends ViewController<Usuario> {
 
     /**
      * Crea una instancia del controlador de vista.
@@ -53,14 +56,33 @@ import Usuario from '../model/usuario';
         ];
     }
 
-    
     /**
      * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
      * @returns Componente visual de formulario de edición/detalle.
      */
-     renderDetailEditForm() {
-        return null;
+    renderDetailEditForm(isInDetailMode: boolean = false) {
+        return (
+            <div>
+                <InputText
+                    id={this.id + "_username"}
+                    entity={this.selectedItem}
+                    valueName="username"
+                    label={<FormattedMessage id="i18n_usuarios_username" />}
+                    maxLength={50}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
+
+                <InputText
+                    id={this.id + "_password"}
+                    entity={this.selectedItem}
+                    valueName="password"
+                    label={<FormattedMessage id="i18n_usuarios_password" />}
+                    maxLength={60}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
+            </div>
+        );
     }
 
 }

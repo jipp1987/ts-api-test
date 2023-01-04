@@ -39,5 +39,6 @@
     "i18n_tipos_cliente_title": "Tipos de cliente",
 
     "i18n_usuarios_title": "Usuarios",
-    "i18n_usuarios_username": "Nombre de usuario"
+    "i18n_usuarios_username": "Nombre de usuario",
+    "i18n_usuarios_password": "Contraseña"
 }

@@ -1,5 +1,3 @@
-import React from 'react';
-
 import DataTableHeader from '../../core/view/table-header';
 import InputText from '../../core/components/input-text';
 import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
