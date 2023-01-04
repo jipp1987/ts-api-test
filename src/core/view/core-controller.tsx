@@ -184,15 +184,11 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                     throw new Error('The selected item cannot be null.')
                 }
 
-                // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
-                // const id_value: string | number | null = get_property_value_by_name(this.selectedItem, this.entity_class.getIdFieldName());
-                // const action = id_value !== undefined && id_value !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
-
                 request_body = {
                     username: null,
                     password: null,
                     entity: target_entity,
-                    request_object: { entity_id: this.selectedItem.getIdFieldValue() }
+                    request_object: this.selectedItem
                 };
 
                 break;
@@ -257,18 +253,18 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 }
 
                 if (group_by_to_check !== undefined && group_by_to_check !== null && group_by_to_check.length > 0) {
-                    order_param = [];
+                    group_by_param = [];
                     for (let i = 0; i < group_by_to_check.length; i++) {
                         if (group_by_to_check[i] !== undefined && group_by_to_check[i] !== null) {
-                            order_param[i] = group_by_to_check[i].toObject();
+                            group_by_param[i] = group_by_to_check[i].toObject();
                         }
                     }
                 }
 
                 if (order_to_check !== undefined && order_to_check !== null && order_to_check.length > 0) {
-                    group_by_param = [];
+                    order_param = [];
                     for (let i = 0; i < order_to_check.length; i++) {
-                        group_by_param[i] = order_to_check[i].toObject();
+                        order_param[i] = order_to_check[i].toObject();
                     }
                 }
 
@@ -288,7 +284,16 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 break;
         }
 
-        // Objeto para envío de solicitud a API.
+        return this.getRequestOptionsBody(request_body);
+    }
+
+    /**
+     * Devuelve las opciones de la request para la API.
+     * 
+     * @param request_body 
+     * @returns RequestInit
+     */
+    protected getRequestOptionsBody(request_body: {}): RequestInit {
         const requestOptions: RequestInit = {
             method: 'POST',
             mode: 'cors',
@@ -302,7 +307,6 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             body: JSON.stringify(
                 request_body
             )
-
         };
 
         return requestOptions;
@@ -435,6 +439,26 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         }
     }
 
+    /** Devuelve un objeto para solicitud de carga de entidad.
+    * 
+    * @param elementToSelect 
+    * @returns request_object.
+    */
+    protected getRequestOptionsForLoad(): {} {
+        if (this.selectedItem !== null) {
+            const requestBody: {} = {
+                username: null,
+                password: null,
+                entity: this.table_name,
+                request_object: { entity_id: this.selectedItem.getIdFieldValue() }
+            };
+    
+            return requestBody;
+        } else {
+            throw Error("$$No entity");
+        }
+    }
+
     /**
      * Función de carga de elemento.
      * 
@@ -443,7 +467,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
     loadItem = async (elementToSelect: T, newState: string | null = null) => {
         this.selectedItem = elementToSelect;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptions(ViewStates.DETAIL));
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptionsBody(this.getRequestOptionsForLoad()));
 
         if (promise !== undefined) {
             promise.then((result) => {

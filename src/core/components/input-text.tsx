@@ -119,7 +119,7 @@ export default function InputText(props: IInputTextProps) {
             const myVar = props.valueName as (keyof typeof entity_);
             entity_[myVar] = newValue;
 
-            // El cambio de estado es tanto del valor del input como de la entidad, para mantenerla actualizada 
+            // El cambio de estado es tanto del valor del input como de la entidad, para mantenerla actualizada
             setValue(newValue);
             setEntity(entity_);
         }

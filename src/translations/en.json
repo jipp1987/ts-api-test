@@ -9,6 +9,7 @@
 
     "i18n_error_codeAlreadyExists": "A record with the code {0} already exists.",
     "i18n_error_stringIsNotNumber": "The text entered is not numeric.",
+    "i18n_error_noEntity": "There is no selected entity.",
     "i18n_error_generic": "There was an error during the operation; please contact the administrator of the tool.",
 
     "i18n_common_yes": "Yes",

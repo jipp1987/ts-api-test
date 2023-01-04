@@ -9,6 +9,7 @@
 
     "i18n_error_codeAlreadyExists": "Ya existe un registro con el código {0}.",
     "i18n_error_stringIsNotNumber": "El texto introducido no es numérico.",
+    "i18n_error_noEntity": "No hay entidad seleccionada.",
     "i18n_error_generic": "Hubo un error durante la operación; por favor, póngase en contacto con el administrador de la herramienta.",
 
     "i18n_common_yes": "Sí",

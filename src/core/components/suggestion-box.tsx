@@ -396,8 +396,15 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     // Label de campo obligatorio
     const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
+    // Acción de búsqueda. Utilizo preventDefault para evitar que se accione el submit del formulario.
+    const findAction = function(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) {
+        e.preventDefault();
+        props.findAction();
+        return false;
+    };
+
     // Botón de búsqueda
-    const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={props.findAction} disabled={!isEditing ? true : false} />
+    const findButton = <ImageButton style={{ marginLeft: '5px' }} className='find-button' onClick={findAction} disabled={!isEditing ? true : false} />
 
     // Etiqueta de búsqueda activa
     const searchMessage = isSearching ? <FormattedMessage id="i18n_common_searching" /> : null;
