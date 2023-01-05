@@ -54,6 +54,11 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      */
     view_title: string;
     /**
+     * Lo utilizo porque los componentes de React pueden llegar a montarse varias veces; con esto evito que llame más de una vez a la API durante la carga inicial.
+     */
+    isAlreadyMounted: boolean;
+
+    /**
      * Crea una instancia del controlador de vista.
      * 
      * @param {props} 
@@ -72,6 +77,8 @@ export default class ViewController<T extends BaseEntity> extends CoreController
          */
         this.is_modal = this.modal_index !== null ? true : false;
         this.last_focus_element = null;
+
+        this.isAlreadyMounted = false;
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
@@ -96,9 +103,12 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
     componentDidMount() {
-        // TODO Mejorar esto: tengo que buscar la forma de llamar a esto sólo una vez durante didmount, está haciendo una consulta de más a la api que no es necesaria
-        // Traer datos de la API
-        this.fetchData();
+        // Traer datos de la API. Utilizo un flag booleano porque a veces esta función se llama un par de veces, es una característica de React.
+        // Así evito llamar a la API más veces de las necesarias.
+        if (!this.isAlreadyMounted) {
+            this.fetchData();
+            this.isAlreadyMounted = true;
+        }
     }
 
     /**
