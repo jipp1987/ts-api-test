@@ -158,9 +158,9 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * @param {SelectActions} select_action Acciones especiales para select. Si null, será una select normal. Sólo aplica para estados LIST y VALIDATE. 
      * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
-    getRequestOptions(controllerState: string | null = null, fields: Array<FieldClause> | null = null, joins: Array<JoinClause> | null = null,
-        filters: Array<FilterClause> | null = null, group_by: Array<GroupByClause> | null = null,
-        order: Array<OrderByClause> | null = null, target_entity?: string): RequestInit {
+    getRequestOptions(controllerState: string | null = null, fields: Array<FieldClause> | null, joins: Array<JoinClause> | null,
+        filters: Array<FilterClause> | null, group_by: Array<GroupByClause> | null,
+        order: Array<OrderByClause> | null, target_entity?: string): RequestInit {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -211,13 +211,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             case ViewStates.LIST:
             case ViewStates.VALIDATE:
             default:
-                // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
-                const fields_to_check = fields !== undefined && fields !== null ? fields : this.fields;
-                const joins_to_check = joins !== undefined && joins !== null ? joins : this.joins;
-                const filters_to_check = filters !== undefined && filters !== null ? filters : this.filters;
-                const group_by_to_check = group_by !== undefined && group_by !== null ? group_by : this.group_by;
-                const order_to_check = order !== undefined && order !== null ? order : this.order;
-
+                // Cargar parámetros de consulta.
                 var fields_param: Array<any> | null = null;
                 var joins_param: Array<any> | null = null;
                 var filters_param: Array<any> | null = null;
@@ -225,46 +219,46 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 var order_param: Array<any> | null = null;
 
                 // Convierto a objeto serializable cada ítem del listado
-                if (fields_to_check !== undefined && fields_to_check !== null && fields_to_check.length > 0) {
+                if (fields !== undefined && fields !== null && fields.length > 0) {
                     fields_param = [];
-                    for (let i = 0; i < fields_to_check.length; i++) {
-                        if (fields_to_check[i] !== undefined && fields_to_check[i] !== null) {
-                            fields_param[i] = fields_to_check[i].toObject();
+                    for (let i = 0; i < fields.length; i++) {
+                        if (fields[i] !== undefined && fields[i] !== null) {
+                            fields_param[i] = fields[i].toObject();
                         }
                     }
                 }
 
-                if (joins_to_check !== undefined && joins_to_check !== null && joins_to_check.length > 0) {
+                if (joins !== undefined && joins !== null && joins.length > 0) {
                     joins_param = [];
-                    for (let i = 0; i < joins_to_check.length; i++) {
-                        if (joins_to_check[i] !== undefined && joins_to_check[i] !== null) {
-                            joins_param[i] = joins_to_check[i].toObject();
+                    for (let i = 0; i < joins.length; i++) {
+                        if (joins[i] !== undefined && joins[i] !== null) {
+                            joins_param[i] = joins[i].toObject();
                         }
                     }
                 }
 
-                if (filters_to_check !== undefined && filters_to_check !== null && filters_to_check.length > 0) {
+                if (filters !== undefined && filters !== null && filters.length > 0) {
                     filters_param = [];
-                    for (let i = 0; i < filters_to_check.length; i++) {
-                        if (filters_to_check[i] !== undefined && filters_to_check[i] !== null) {
-                            filters_param[i] = filters_to_check[i].toObject();
+                    for (let i = 0; i < filters.length; i++) {
+                        if (filters[i] !== undefined && filters[i] !== null) {
+                            filters_param[i] = filters[i].toObject();
                         }
                     }
                 }
 
-                if (group_by_to_check !== undefined && group_by_to_check !== null && group_by_to_check.length > 0) {
+                if (group_by !== undefined && group_by !== null && group_by.length > 0) {
                     group_by_param = [];
-                    for (let i = 0; i < group_by_to_check.length; i++) {
-                        if (group_by_to_check[i] !== undefined && group_by_to_check[i] !== null) {
-                            group_by_param[i] = group_by_to_check[i].toObject();
+                    for (let i = 0; i < group_by.length; i++) {
+                        if (group_by[i] !== undefined && group_by[i] !== null) {
+                            group_by_param[i] = group_by[i].toObject();
                         }
                     }
                 }
 
-                if (order_to_check !== undefined && order_to_check !== null && order_to_check.length > 0) {
+                if (order !== undefined && order !== null && order.length > 0) {
                     order_param = [];
-                    for (let i = 0; i < order_to_check.length; i++) {
-                        order_param[i] = order_to_check[i].toObject();
+                    for (let i = 0; i < order.length; i++) {
+                        order_param[i] = order[i].toObject();
                     }
                 }
 
@@ -318,7 +312,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * @param newViewState Cambio opcional de estado del controlador.
      */
     fetchData = (newViewState: string | null = null) => {
-        const request_options: RequestInit = this.getRequestOptions(ViewStates.LIST);
+        const request_options: RequestInit = this.getRequestOptions(ViewStates.LIST, this.fields, this.joins, this.filters, this.group_by, this.order);
 
         const { viewState } = this.state;
 
@@ -414,7 +408,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 url = properties.apiUrl + "/create";
             }
 
-            const promise = this.makeRequestToAPI(url, this.getRequestOptions());
+            const promise = this.makeRequestToAPI(url, this.getRequestOptions(null, this.fields, this.joins, this.filters, this.group_by, this.order));
 
             if (promise !== undefined) {
                 promise.then((result) => {
@@ -445,7 +439,8 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         // Asigno a itemToDelete el elemento pasado como parámetro.
         this.itemToDelete = elementToDelete;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptions(ViewStates.DELETE));
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptions(ViewStates.DELETE, this.fields, this.joins, 
+            this.filters, this.group_by, this.order));
 
         if (promise !== undefined) {
             promise.then((result) => {
@@ -638,9 +633,8 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 fields.push(new FieldClause(field));
             }
 
-            // TODO Esto hay que revisarlo: tengo que pasar listados vacíos porque si paso null me coge los listados de cláusulas del propio controlador. 
             // Buscar una forma de poder pasar null o nada mejor.
-            const result = await this.makeRequestToAPI(properties.apiUrl + '/select', this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], [], target_entity), false);
+            const result = await this.makeRequestToAPI(properties.apiUrl + '/select', this.getRequestOptions(ViewStates.LIST, fields, null, filters, null, null, target_entity), false);
 
             // Determinar el resultado
             if (result !== undefined && result !== null) {
