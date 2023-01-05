@@ -312,10 +312,15 @@ export default class ViewController<T extends BaseEntity> extends CoreController
     * @returns Toolbar. 
     */
     renderToolbarEditDetail(): React.ReactNode {
+        // Si estamos en modo detalle, se mostrará un botón para editar el objeto; si estamos en modo edición, se mostrará el botón de guardar.
+        const editSaveButton: React.ReactNode = this.isInDetailMode() ?
+            <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null } /> :
+            <ImageButton title='i18n_save_button' className='save-button' type='submit' />;
+
         return (
             <div className='toolbar'>
                 <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
-                <ImageButton title='i18n_save_button' className='save-button' type='submit' />
+                {editSaveButton}
             </div>
         );
     }

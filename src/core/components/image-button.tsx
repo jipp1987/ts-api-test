@@ -46,10 +46,10 @@ export default function ImageButton({id, title, type, style, className, onClick,
     // Defino habilitado como atributo de estado del componente porque puede habilitarse/desabilitarse durante un rerender
     const [enabled, setEnabled] = useState<boolean>(disabled !== undefined && disabled === true ? false : true);
 
-    // Utilizo un hook para forzar el rerender el componente en caso de que se cambie el estado de este atributo
+    // Utilizo un hook para forzar el rerender el componente en caso de que desde las propiedades cambie el valor
     useEffect(() => {
-        setEnabled(enabled);
-    }, [enabled]);
+        setEnabled(!disabled);
+    }, [disabled]);
 
     // Comprobar si ha llegado un tipo
     var type_ = type;

@@ -346,6 +346,24 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
     }
 
     /**
+     * Comprueba si la entidad seleccionada tiene id (significa que ha existe en la base de datos).
+     * 
+     * @returns boolean 
+     */
+    public doesSelectedEntityHaveId(): boolean {
+        if (this.selectedItem !== null) {
+            const id = this.getSelectedItemIdFieldValue();
+            if (id !== null) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw Error("$$No entity");
+        }
+    }
+
+    /**
      * Maneja el evento de envío del objeto a la api.
      * 
      * @param {event} e Evento de javascript. 
@@ -383,12 +401,12 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
 
         // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
         if (this.selectedItem.errorMessagesInForm.size === 0) {
-            var url: string = properties.apiUrl + "/create";
-
             // Si el objeto tiene id, es una actualización 
-            const id = this.getSelectedItemIdFieldValue();
-            if (id !== null) {
+            let url: string;
+            if (this.doesSelectedEntityHaveId()) {
                 url = properties.apiUrl + "/update";
+            } else {
+                url = properties.apiUrl + "/create";
             }
 
             const promise = this.makeRequestToAPI(url, this.getRequestOptions());
@@ -452,7 +470,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 entity: this.table_name,
                 request_object: { entity_id: this.selectedItem.getIdFieldValue() }
             };
-    
+
             return requestBody;
         } else {
             throw Error("$$No entity");

@@ -62,6 +62,16 @@ export default class UsuarioView extends ViewController<Usuario> {
      * @returns Componente visual de formulario de edición/detalle.
      */
     renderDetailEditForm(isInDetailMode: boolean = false) {
+        // El campo de password que sea visible sólo durante la creación.
+        const passwordField = this.doesSelectedEntityHaveId() ? null : <InputText
+            id={this.id + "_password"}
+            entity={this.selectedItem}
+            valueName="password"
+            label={<FormattedMessage id="i18n_usuarios_password" />}
+            maxLength={60}
+            isEditing={!isInDetailMode}
+            isRequired={true} />;
+
         return (
             <div>
                 <InputText
@@ -73,14 +83,7 @@ export default class UsuarioView extends ViewController<Usuario> {
                     isEditing={!isInDetailMode}
                     isRequired={true} />
 
-                <InputText
-                    id={this.id + "_password"}
-                    entity={this.selectedItem}
-                    valueName="password"
-                    label={<FormattedMessage id="i18n_usuarios_password" />}
-                    maxLength={60}
-                    isEditing={!isInDetailMode}
-                    isRequired={true} />
+                {passwordField}
             </div>
         );
     }

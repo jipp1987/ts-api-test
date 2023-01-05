@@ -218,11 +218,6 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const { label, minLength, id } = props;
 
 
-    // Rerenderizado utilizando el hook useEffect. Se utiliza para detectar cambios en los valores de estado y forzar el rerender del componente.
-    useEffect(() => {
-        setIsRequired(isRequired);
-    }, [isRequired]);
-
     useEffect(() => {
         setIsEditing(props.isEditing);
     }, [props.isEditing]);
