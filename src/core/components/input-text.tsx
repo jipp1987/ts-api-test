@@ -59,6 +59,9 @@ export default function InputText(props: IInputTextProps) {
     const isEditingProps: boolean = props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false;
     const valueProps = props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "";
 
+    // Esto lo almaceno como atributo de estado para evitar que, si no ha cambiado el valor, se ejecute la acción de validación en el onBlur
+    const [originalValue] = useState<string>(valueProps);
+
     // Estado inicial a partir de las propiedades
     const [value, setValue] = useState(valueProps);
     const [isRequired, setIsRequired] = useState(isRequiredProps);
@@ -129,6 +132,11 @@ export default function InputText(props: IInputTextProps) {
      * Acción posterior tras perder el foco.
      */
     const onBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
+        // Si el valor es null o bien el valor original (almacenado originalmente en valueProps) es igual al valor actual, que no active la validación.
+        if ((value === null || value === "") || value === originalValue) {
+            return;
+        }
+
         // Ejecutar primero los validadores si los hubiera
         // Asumo que va a ser null para evitar forzar el click al final si no hay eventos asíncronos; los eventos asíncronos durante la validación 
         // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.

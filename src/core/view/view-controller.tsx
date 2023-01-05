@@ -96,6 +96,7 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
     componentDidMount() {
+        // TODO Mejorar esto: tengo que buscar la forma de llamar a esto sólo una vez durante didmount, está haciendo una consulta de más a la api que no es necesaria
         // Traer datos de la API
         this.fetchData();
     }
@@ -298,12 +299,7 @@ export default class ViewController<T extends BaseEntity> extends CoreController
      */
     goToList(): void {
         // Cargar datos
-        this.fetchData();
-
-        // Cambiar estado.
-        this.setState({
-            viewState: ViewStates.LIST
-        });
+        this.fetchData(ViewStates.LIST);
     }
 
     /**

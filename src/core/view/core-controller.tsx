@@ -314,9 +314,13 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
 
     /**
      * Hace una consulta a la API para traer datos para el listado.
+     * 
+     * @param newViewState Cambio opcional de estado del controlador.
      */
-    fetchData = () => {
+    fetchData = (newViewState: string | null = null) => {
         const request_options: RequestInit = this.getRequestOptions(ViewStates.LIST);
+
+        const { viewState } = this.state;
 
         const promise = this.makeRequestToAPI(properties.apiUrl + "/select", request_options);
         if (promise !== undefined) {
@@ -324,7 +328,8 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
                 if (result !== undefined && result !== null) {
                     this.setState({
-                        items: this.convertFromJsonToEntityList(result['response_object'])
+                        items: this.convertFromJsonToEntityList(result['response_object']),
+                        viewState: newViewState !== null ? newViewState : viewState
                     });
                 }
             });
@@ -792,7 +797,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         const filters: Array<FilterClause> = [new FilterClause(field_code_name_, FilterTypes.EQUALS, codigo)];
 
         // Necesito el id por si fuera una actualización, para que no valide el código sobre sí mismo.
-        const id = this.getSelectedItemIdFieldValue();;
+        const id = this.getSelectedItemIdFieldValue();
         if (id !== null) {
             // Si tiene id, añadir un filtro para excluir el recuento sobre sí mismo
             filters.push(new FilterClause(this.entity_class.getIdFieldName(), FilterTypes.NOT_EQUALS, id));

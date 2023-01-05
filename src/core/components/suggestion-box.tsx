@@ -201,7 +201,6 @@ interface ISuggestionBoxProps {
 export default function SuggestionBox(props: ISuggestionBoxProps) {
     // Estado inicial a partir de las propiedades
     const [value, setValue] = useState<string>(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
-    const [isRequired, setIsRequired] = useState<boolean>(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
     const [entity, setEntity] = useState<any>(props.entity);
     const [isEditing, setIsEditing] = useState<boolean | undefined>(props.isEditing);
     const [result, setResult] = useState<Array<any> | null>(null);
@@ -389,7 +388,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
         makeTableForSuggestionBox(id, result, selectItem, props.idFieldName) : null);
 
     // Label de campo obligatorio
-    const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
+    const requiredLabel = props.isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
     // Acción de búsqueda. Utilizo preventDefault para evitar que se accione el submit del formulario.
     const findAction = function(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) {
@@ -422,7 +421,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
                 minLength={minLength}
                 value={value}
                 disabled={!isEditing ? true : false}
-                required={isRequired ? true : false}
+                required={props.isRequired ? true : false}
                 onKeyDown={handleKeyDown}
                 onChange={handleChange} />
 
