@@ -18,7 +18,7 @@ import BaseEntity from "../model/base_entity";
 /**
  * @class Controlador de vista.
  */
-export default class ViewController<T extends BaseEntity> extends CoreController<T> {
+export default abstract class ViewController<T extends BaseEntity> extends CoreController<T> {
 
     // DEFINICIÓN DE CAMPOS
     /**

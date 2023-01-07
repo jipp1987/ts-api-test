@@ -1,5 +1,3 @@
-import React from 'react';
-
 import DataTableHeader from '../../core/view/table-header';
 import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
@@ -130,7 +128,6 @@ export default class ClienteView extends ViewController<Cliente> {
         if (this.selectedItem !== null) {
             return (
                 <div>
-
                     <InputText
                         id={this.id + "_codigo"}
                         entity={this.selectedItem}
@@ -139,7 +136,7 @@ export default class ClienteView extends ViewController<Cliente> {
                         maxLength={10}
                         isEditing={!isInDetailMode}
                         isRequired={true}
-                        validation={() => this.validateEntity(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
+                        validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
 
                     <InputText
                         id={this.id + "_nombre"}

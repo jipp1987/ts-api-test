@@ -9,27 +9,15 @@ export default abstract class BaseEntity extends Serializable {
      */
     protected uuid_: string
 
-    /**
-     * Mapa de errores por atributo. Necesario para la validación en los formularios. La clave es un string con el nombre de la propiedad errónea; 
-     * el valor es una tupla con el error y el valor erróneo. Merece la pena almacenar el valor erróneo porque si se cambia el valor de la propiedad desde otro punto, se puede 
-     * comparar el valor actual con el almacenado junto al error para saber si ha cambiado y si es así eliminar el error del mapa.
-    */
-    protected errorMessagesInForm_: Map<string, [string, string]>
-
     // CONSTRUCTOR
     constructor() {
         super();
         this.uuid_ = generateUuid();
-        this.errorMessagesInForm_ = new Map();
     }
 
     // GETTERS Y SETTERS
     public get uuid(): string {
         return this.uuid_;
-    }
-
-    public get errorMessagesInForm(): Map<string, [string, string]> {
-        return this.errorMessagesInForm_;
     }
 
     // MÉTODOS

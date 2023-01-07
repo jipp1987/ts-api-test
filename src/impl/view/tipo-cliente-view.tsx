@@ -79,10 +79,6 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
      * @returns Componente visual de formulario de edición/detalle.
      */
     renderDetailEditForm(isInDetailMode: boolean = false) {
-        const code_validators: Array<string> = [
-            ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR
-        ];
-
         return (
             <div>
                 <InputText
@@ -93,7 +89,7 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
                     maxLength={4}
                     isEditing={!isInDetailMode}
                     isRequired={true}
-                    validation={() => this.validateEntity(this.selectedItem, "codigo", code_validators)} />
+                    validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
 
                 <InputText
                     id={this.id + "_descripcion"}

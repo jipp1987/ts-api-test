@@ -120,18 +120,6 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
         // Clono los datos del estado del TabPanel.
         let data = this.state.data.slice();
 
-        // Si no hay datos, mejor que limpie el almacenamiento local. Sino puede producir un comportamiento extraño al recargar la página cuando no hay pestañas:
-        // parece que deja almacenada la última pestaña, y si la nueva no coincide con ésta se produce un error en la api al enviarle los datos que no corresponden con la vista.
-        if (data.length === 0) {
-            localStorage.clear();
-        }
-
-        // Si no hay datos, mejor que limpie el almacenamiento local. Sino puede producir un comportamiento extraño al recargar la página cuando no hay pestañas:
-        // parece que deja almacenada la última pestaña, y si la nueva no coincide con ésta se produce un error en la api al enviarle los datos que no corresponden con la vista.
-        if (data.length === 0) {
-            localStorage.clear();
-        }
-
         // Modifico el listado añadiendo un nuevo tab.
         data.push(new DataTab(label, tab, generateUuid()));
 

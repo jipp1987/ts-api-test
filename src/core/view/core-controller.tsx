@@ -2,6 +2,7 @@ import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
 import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
+import { VALIDATION_FUNCTION_TYPE } from "./validation_function";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
 
@@ -32,7 +33,7 @@ interface ICoreControllerState {
 /**
  * @class Core de controladores de vista.
  */
-export class CoreController<T extends BaseEntity> extends React.Component<ICoreControllerProps, ICoreControllerState> {
+export abstract class CoreController<T extends BaseEntity> extends React.Component<ICoreControllerProps, ICoreControllerState> {
 
     // ATRIBUTOS DE CLASE
     /**
@@ -375,57 +376,26 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
             throw new Error("The selected item cannot be null.");
         }
 
-        if (this.selectedItem.errorMessagesInForm.size > 0) {
-            // Mejor no eliminar claves durante la iteración; las guardo en un listado y ya las borro luego.
-            var keysToDelete: Array<string> = [];
-
-            let actual_value: any;
-            this.selectedItem.errorMessagesInForm.forEach((value: any, key: string) => {
-                // El valor de cada clave del mapa es una tupla con el error y el valor que lo ha provocado. Lo que hago es comparar el valor actual con este último.
-                actual_value = get_property_value_by_name(this.selectedItem, key);
-
-                if (this.selectedItem !== null && actual_value !== value[1]) {
-                    // Si son diferentes, guardo la clave en la lista de claves a eliminar.
-                    keysToDelete.push(key);
-                }
-            });
-
-            // Elimino las claves del mapa de errores
-            if (keysToDelete.length > 0) {
-                for (let key of keysToDelete) {
-                    this.selectedItem.errorMessagesInForm.delete(key);
-                }
-            }
+        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
+        // Si el objeto tiene id, es una actualización 
+        let url: string;
+        if (this.doesSelectedEntityHaveId()) {
+            url = properties.apiUrl + "/update";
+        } else {
+            url = properties.apiUrl + "/create";
         }
 
-        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
-        if (this.selectedItem.errorMessagesInForm.size === 0) {
-            // Si el objeto tiene id, es una actualización 
-            let url: string;
-            if (this.doesSelectedEntityHaveId()) {
-                url = properties.apiUrl + "/update";
-            } else {
-                url = properties.apiUrl + "/create";
-            }
+        const promise = this.makeRequestToAPI(url, this.getRequestOptions(null, this.fields, this.joins, this.filters, this.group_by, this.order));
 
-            const promise = this.makeRequestToAPI(url, this.getRequestOptions(null, this.fields, this.joins, this.filters, this.group_by, this.order));
-
-            if (promise !== undefined) {
-                promise.then((result) => {
-                    // Si el resultado ha sido correcto es un código 200
-                    if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                        this.setState({ viewState: ViewStates.DETAIL });
-                        toast.success(result['response_object']);
-                    } else {
-                        toast.error(result['response_object']);
-                    }
-                });
-            }
-        } else {
-            // Si hay errores, mostrar toast
-            this.selectedItem.errorMessagesInForm.forEach((value: any, key: string) => {
-                // El primer valor de la tupla es el mensaje de error
-                toast.error(value[0]);
+        if (promise !== undefined) {
+            promise.then((result) => {
+                // Si el resultado ha sido correcto es un código 200
+                if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                    this.setState({ viewState: ViewStates.DETAIL });
+                    toast.success(result['response_object']);
+                } else {
+                    toast.error(result['response_object']);
+                }
             });
         }
     };
@@ -439,7 +409,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         // Asigno a itemToDelete el elemento pasado como parámetro.
         this.itemToDelete = elementToDelete;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptions(ViewStates.DELETE, this.fields, this.joins, 
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptions(ViewStates.DELETE, this.fields, this.joins,
             this.filters, this.group_by, this.order));
 
         if (promise !== undefined) {
@@ -671,14 +641,14 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
 
     // VALIDACIÓN
     /**
-     * Valida la entidad.
+     * Esta función está pensada para ejecutan más de una validación sobre un mismo campo.
      * 
      * @param {BaseEntity} item_to_check Entidad a comprobar.
      * @param {string} field_name Nombre del campo a validar.
-     * @param  {...ViewValidators} validators Listado de enumero de ViewValidators.
+     * @param  {...ViewValidators} validators Listado de enumerado de ViewValidators.
      * @returns {boolean} true si es válido, false si no lo es.
      */
-    validateEntity = (item_to_check: T | null, field_name: string, validators: Array<any>): Promise<boolean> | boolean | null => {
+    validateField = (item_to_check: T | null, field_name: string, validators: Array<string>): Promise<boolean> | boolean | null => {
         // Si el ítem es null, devuelvo null
         if (item_to_check === null) {
             return null;
@@ -688,8 +658,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
         var is_valid: Promise<boolean> | boolean = true;
 
         // Declaro la función a llamar y sus parámetros
-        let function_to_call;
-        let function_to_call_params;
+        let function_to_call: VALIDATION_FUNCTION_TYPE;
 
         for (let validator of validators) {
             // Si algún validador devuelve false, que no continúe
@@ -697,32 +666,23 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 break;
             }
 
-            // Reinicio las variables en cada iteración
-            function_to_call = null;
-            function_to_call_params = null;
-
             // Voy comprobando los validadores pasados como parámetro
             switch (validator) {
+
                 case ViewValidators.CODE_VALIDATOR:
                     // Validador de código
                     function_to_call = this.code_is_valid;
-                    // Parámetros: entidad a comprobar y nombre del campo
-                    function_to_call_params = [item_to_check, field_name];
+                    is_valid = this.executeValidateFunction(function_to_call, [item_to_check, field_name]);
                     break;
 
                 case ViewValidators.IS_NUMERIC_VALIDATOR:
                     // Validador de string numérico
                     function_to_call = this.string_is_only_numbers;
-                    // Parámetros: valor del campo en la entidad
-                    function_to_call_params = [get_property_value_by_name(item_to_check, field_name)];
+                    is_valid = this.executeValidateFunction(function_to_call, [get_property_value_by_name(item_to_check, field_name)]);
                     break;
 
                 default:
                     break;
-            }
-
-            if (function_to_call !== null) {
-                is_valid = this._validate(item_to_check, field_name, function_to_call, function_to_call_params);
             }
         }
 
@@ -730,7 +690,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
     }
 
     /**
-     * Función asíncrona para validar un objeto pasado como parámetro. El objeto debería heredar de BaseEntity para asegurar que posee el mapa de errores de validación.
+     * Función asíncrona para validar un objeto pasado como parámetro.
      * 
      * @param {any} item_to_check Elemento a validar.
      * @param {string} field_name Nombre del campo a validar.
@@ -738,40 +698,19 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * @param {array} params Array de parámetros para la función.
      * @returns {boolean} true si es válido, false si no lo es.
      */
-    _validate = async (item_to_check: T, field_name: string, callback: any, params: any) => {
-        // bool para saber si ha ido todo bien.
-        var isValid: boolean = true;
+    protected async executeValidateFunction(callback: () => string | boolean | React.ReactNode | Promise<any>, params?: any): Promise<boolean> {
+        // Llamar a función de validación. Importante utilizar await para que la función asíncrona espera al resultado de la promesa.
+        const error = await callback.apply(this, params);
 
-        var value_: any = get_property_value_by_name(item_to_check, field_name);
+        // Si ha devuelto algo distinto de undefined/null significa que se ha producido algún error
+        if (error !== undefined && error !== null) {
+            // Mostrar aviso de error
+            toast.error(error);
 
-        if (item_to_check !== null && value_ !== undefined && value_ !== null) {
-            // Tiene mapa de errores (campo errorMessagesInForm)
-            const hasErrorsMap = item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null;
-
-            // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
-            if (hasErrorsMap) {
-                item_to_check.errorMessagesInForm.delete(field_name);
-            }
-
-            // Llamar a función de validación. Importante utilizar await para que la función asíncrona espera al resultado de la promesa.
-            const error = await callback.apply(this, params);
-
-            // Si ha devuelto algo distinto de undefined/null significa que se ha producido algún error, por tanto hay que grabarlo en el mapa de errores
-            if (error !== undefined && error !== null) {
-                if (hasErrorsMap) {
-                    // Observar que guardo una tupla con el error y el valor que lo ha provocado.
-                    item_to_check.errorMessagesInForm.set(field_name, [error, value_]);
-                }
-
-                // Existe error
-                isValid = false;
-
-                // Mostrar aviso de error
-                toast.error(error);
-            }
+            return false;
+        } else {
+            return true;
         }
-
-        return isValid;
     }
 
     /**
@@ -781,7 +720,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * @param {string} field_code_name Si null, se utilizará el nombre del campo "código" del elemento seleccionado.
      * @param {List[FilterClause]} additional_filters Filtros adicionales que se quisieran introducir.
      */
-    code_is_valid = async (item_to_check: T | null = null, field_code_name: string | null = null, additional_filters: Array<FilterClause> | null = null) => {
+    code_is_valid = async (item_to_check: T | null = null, field_code_name: string | null = null, additional_filters: Array<FilterClause> | null = null): Promise<React.ReactNode | null> => {
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         var field_code_name_: string = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
 
@@ -816,10 +755,14 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
                 if (count !== undefined && count !== null && count > 0) {
                     // Avisar al usuario
                     return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                } else {
+                    return null;
                 }
             } else {
-                return result['response_object'];
+                return null;
             }
+        } else {
+            return null;
         }
     }
 
@@ -829,7 +772,7 @@ export class CoreController<T extends BaseEntity> extends React.Component<ICoreC
      * @param {string} text 
      * @returns null si es válido, una cadena con el error si no lo es.
      */
-    string_is_only_numbers = (text: string) => {
+    string_is_only_numbers = (text: string): React.ReactNode | null => {
         return (/^\d+$/.test(text) ? null : <FormattedMessage id="i18n_error_stringIsNotNumber" />);
     }
 
