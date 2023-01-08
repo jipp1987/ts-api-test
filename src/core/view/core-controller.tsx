@@ -186,8 +186,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 }
 
                 request_body = {
-                    username: null,
-                    password: null,
                     entity: target_entity,
                     request_object: this.selectedItem
                 };
@@ -201,8 +199,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 }
 
                 request_body = {
-                    username: null,
-                    password: null,
                     entity: target_entity,
                     request_object: this.itemToDelete.toObject()
                 };
@@ -264,8 +260,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 }
 
                 request_body = {
-                    username: null,
-                    password: null,
                     entity: target_entity,
                     request_object: {
                         fields: fields_param,
@@ -296,7 +290,8 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*"
+                "Access-Control-Allow-Origin": "*",
+                'Authorization': 'Bearer ' + sessionStorage.getItem("jwt-token")
             },
 
             body: JSON.stringify(
@@ -435,8 +430,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     protected getRequestOptionsForLoad(): {} {
         if (this.selectedItem !== null) {
             const requestBody: {} = {
-                username: null,
-                password: null,
                 entity: this.table_name,
                 request_object: { entity_id: this.selectedItem.getIdFieldValue() }
             };
