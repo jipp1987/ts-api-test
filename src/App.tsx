@@ -3,7 +3,6 @@ import { IntlProvider, FormattedMessage } from "react-intl";
 
 import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
-import toast from 'react-hot-toast';
 
 import { VIEW_MAP } from './impl/view/view_map';
 
@@ -56,53 +55,6 @@ function Menu({ onClick, parentRef }: MenuProps) {
 }
 
 /**
- * Obtiene el token de autorización para consultas a la base de datos.
- */
-async function getValidationToken() {
-  // TODO De momento esto lo pongo así hasta tener un login normal: almaceno en sesión un usuario
-  sessionStorage.setItem("username", properties.username);
-  sessionStorage.setItem("password", properties.password);
-
-  const requestBody: {} = {
-    request_object: { username: sessionStorage.getItem("username"), password: sessionStorage.getItem("password") }
-  };
-
-  const requestOptions: RequestInit = {
-    method: 'POST',
-    mode: 'cors',
-    cache: 'default',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json; charset=utf-8',
-      "Access-Control-Allow-Origin": "*"
-    },
-    body: JSON.stringify(requestBody)
-  };
-
-  const resp = await fetch(properties.userUrl + "/create_token", requestOptions);
-
-  if (!resp.ok) {
-    toast.error("There was a problem in the login request.");
-    return;
-  }
-
-  if (resp.status === 401) {
-    toast.error("Invalid credentials.");
-    return;
-  } else if (resp.status === 400) {
-    toast.error("Invalid email or password format.");
-    return;
-  }
-
-  // Almacenar en localStorage
-  resp.json().then(
-    (d) => {
-      sessionStorage.setItem("jwt-token", d.response_object);
-    }
-  );
-}
-
-/**
  * Componente principal de la aplicación.
  * 
  * @returns Componente principal de la aplicación.
@@ -111,7 +63,9 @@ export default function App() {
   // TODO Temporal
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-    getValidationToken();
+    // TODO De momento esto lo pongo así hasta tener un login normal: almaceno en sesión un usuario
+    sessionStorage.setItem("username", properties.username);
+    sessionStorage.setItem("password", properties.password);
   });
 
   // Referencias a componentes.

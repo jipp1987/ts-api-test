@@ -106,9 +106,16 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         // Traer datos de la API. Utilizo un flag booleano porque a veces esta función se llama un par de veces, es una característica de React.
         // Así evito llamar a la API más veces de las necesarias.
         if (!this.isAlreadyMounted) {
-            this.fetchData();
-            this.isAlreadyMounted = true;
-        }
+            this.getValidationToken().then(
+                (result: boolean) => {
+                    if (result) {
+                        this.fetchData();
+                    }
+                }
+                );
+            }
+            
+        this.isAlreadyMounted = true;
     }
 
     /**
@@ -320,7 +327,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     renderToolbarEditDetail(): React.ReactNode {
         // Si estamos en modo detalle, se mostrará un botón para editar el objeto; si estamos en modo edición, se mostrará el botón de guardar.
         const editSaveButton: React.ReactNode = this.isInDetailMode() ?
-            <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null } /> :
+            <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null} /> :
             <ImageButton title='i18n_save_button' className='save-button' type='submit' />;
 
         return (

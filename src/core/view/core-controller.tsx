@@ -112,6 +112,38 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
+     * Devuelve el valor del campo id del elemento seleccionado.
+     * 
+     * @returns string | null
+     */
+    protected getSelectedItemIdFieldValue(): string | null {
+        // Si el objeto tiene id, es una actualización 
+        const field_id_name = this.entity_class.getIdFieldName();
+        const field_id = get_property_value_by_name(this.selectedItem, field_id_name);
+        const id = field_id !== undefined && field_id !== null ? field_id : null;
+
+        return id;
+    }
+
+    /**
+     * Comprueba si la entidad seleccionada tiene id (significa que ha existe en la base de datos).
+     * 
+     * @returns boolean 
+     */
+    public doesSelectedEntityHaveId(): boolean {
+        if (this.selectedItem !== null) {
+            const id = this.getSelectedItemIdFieldValue();
+            if (id !== null) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw Error("$$No entity");
+        }
+    }
+
+    /**
      * Envía una petición a la API. 
      * 
      * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
@@ -122,25 +154,22 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * debe emplear then para captura el return interno, es decir, el resultado.
      */
     makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true) {
-        const url_: string | null = url !== undefined && url !== null ? url : properties.apiUrl;
+        const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
 
-        if (url_ !== null) {
-            const query = fetch(url_, requestOptions)
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        // Result es un objeto RequestResponse con atributos success, status_code y response_object
-                        return result;
-                    },
+        const query = fetch(url_, requestOptions)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    // Result es un objeto RequestResponse con atributos success, status_code y response_object
+                    return result;
+                },
 
-                    // TODO Si se produce un error en la consulta con la API, habrá que hacer algo aquí, redirigir a otra página o algo así
-                    (error) => {
-                        toast.error(error.message);
-                    }
-                );
+                (error) => {
+                    toast.error(error.message);
+                }
+            );
 
-            return (waitStatus ? trackPromise(query) : query);
-        }
+        return (waitStatus ? trackPromise(query) : query);
     }
 
     /**
@@ -303,6 +332,44 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
+     * Obtiene el token de autorización para consultas a la base de datos.
+    */
+    protected async getValidationToken(): Promise<boolean> {
+        const requestBody: {} = {
+            request_object: { username: sessionStorage.getItem("username"), password: sessionStorage.getItem("password") }
+        };
+
+        const requestOptions: RequestInit = {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
+                "Access-Control-Allow-Origin": "*"
+            },
+            body: JSON.stringify(requestBody)
+        };
+
+        return await fetch(properties.userUrl + "/create_token", requestOptions)
+            .then(result => result.json())
+            .then(
+                (result) => {
+                    if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                        sessionStorage.setItem("jwt-token", result.response_object);
+                        return true;
+                    } else {
+                        toast.error(result['response_object']);
+                        return false;
+                    }
+                }
+            ).catch(error => {
+                toast.error(error.message);
+                return false;
+            });
+    }
+
+    /**
      * Hace una consulta a la API para traer datos para el listado.
      * 
      * @param newViewState Cambio opcional de estado del controlador.
@@ -312,50 +379,15 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
 
         const { viewState } = this.state;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/select", request_options);
-        if (promise !== undefined) {
-            promise.then((result) => {
-                // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
-                if (result !== undefined && result !== null) {
-                    this.setState({
-                        items: this.convertFromJsonToEntityList(result['response_object']),
-                        viewState: newViewState !== null ? newViewState : viewState
-                    });
-                }
-            });
-        }
-    }
-
-    /**
-     * Devuelve el valor del campo id del elemento seleccionado.
-     * 
-     * @returns string | null
-     */
-    protected getSelectedItemIdFieldValue(): string | null {
-        // Si el objeto tiene id, es una actualización 
-        const field_id_name = this.entity_class.getIdFieldName();
-        const field_id = get_property_value_by_name(this.selectedItem, field_id_name);
-        const id = field_id !== undefined && field_id !== null ? field_id : null;
-
-        return id;
-    }
-
-    /**
-     * Comprueba si la entidad seleccionada tiene id (significa que ha existe en la base de datos).
-     * 
-     * @returns boolean 
-     */
-    public doesSelectedEntityHaveId(): boolean {
-        if (this.selectedItem !== null) {
-            const id = this.getSelectedItemIdFieldValue();
-            if (id !== null) {
-                return true;
-            } else {
-                return false;
+        this.makeRequestToAPI(properties.apiUrl + "/select", request_options).then((result) => {
+            // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
+            if (result !== undefined && result !== null) {
+                this.setState({
+                    items: this.convertFromJsonToEntityList(result['response_object']),
+                    viewState: newViewState !== null ? newViewState : viewState
+                });
             }
-        } else {
-            throw Error("$$No entity");
-        }
+        });
     }
 
     /**
@@ -400,7 +432,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * 
      * @param {entity_class} Elemento a eliminar. 
      */
-    deleteItem = (elementToDelete: T) => {
+    deleteItem = async (elementToDelete: T) => {
         // Asigno a itemToDelete el elemento pasado como parámetro.
         this.itemToDelete = elementToDelete;
 
