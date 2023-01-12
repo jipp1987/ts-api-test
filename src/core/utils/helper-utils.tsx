@@ -61,6 +61,15 @@ export function get_property_value_by_name(owner_of_prop: any, prop_name: string
 }
 
 /**
+ * Obtiene la fecha actual del navegador en milisegundos.
+ * 
+ * @returns number
+ */
+export function getTimestampInSeconds(): number {
+    return Math.floor(Date.now() / 1000)
+}
+
+/**
  * Da formato a un string numérico.
  * 
  * @param {*} number 

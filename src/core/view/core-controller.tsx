@@ -6,7 +6,6 @@ import { VALIDATION_FUNCTION_TYPE } from "./validation_function";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
 
-// import { APIActionCodes } from '../utils/helper-utils';
 import { trackPromise } from 'react-promise-tracker';
 import { FormattedMessage } from "react-intl";
 
@@ -320,7 +319,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 'Accept': 'application/json',
                 'Content-Type': 'application/json; charset=utf-8',
                 "Access-Control-Allow-Origin": "*",
-                'Authorization': 'Bearer ' + sessionStorage.getItem("jwt-token")
+                'Authorization': 'Bearer ' + localStorage.getItem("jwt-token")
             },
 
             body: JSON.stringify(
@@ -351,12 +350,15 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
             body: JSON.stringify(requestBody)
         };
 
-        return await fetch(properties.userUrl + "/create_token", requestOptions)
+        return await fetch(properties.userUrl + "/login", requestOptions)
             .then(result => result.json())
             .then(
                 (result) => {
                     if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                        sessionStorage.setItem("jwt-token", result.response_object);
+                        // Esto devuelve los tokens: el de autorización y el de refrescado.
+                        sessionStorage.setItem("jwt-token", result.response_object["token_jwt"]);
+                        sessionStorage.setItem("refresh-jwt-token", result.response_object["refresh_token"]);
+
                         return true;
                     } else {
                         toast.error(result['response_object']);

@@ -1,16 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { IntlProvider, FormattedMessage } from "react-intl";
 
 import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
 import { VIEW_MAP } from './impl/view/view_map';
+import Login from './impl/view/components/login';
+import { properties } from "./properties";
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
 
 import './App.css';
-import { properties } from './properties';
 
 // Carga de mensajes
 const messages = new Map<string, any>([
@@ -60,20 +61,22 @@ function Menu({ onClick, parentRef }: MenuProps) {
  * @returns Componente principal de la aplicación.
  */
 export default function App() {
-  // TODO Temporal
-  // Similar to componentDidMount and componentDidUpdate:
-  useEffect(() => {
-    // TODO De momento esto lo pongo así hasta tener un login normal: almaceno en sesión un usuario
-    sessionStorage.setItem("username", properties.username);
-    sessionStorage.setItem("password", properties.password);
-  });
+  // Variables de estado para controlar si se va a pintar el formulario de login o el formulario principal de la petición
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem(properties.tokenSessionID) !== null ?
+    sessionStorage.getItem(properties.tokenSessionID) : null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(sessionStorage.getItem(properties.tokenRefreshSessionID) !== null ?
+    sessionStorage.getItem(properties.tokenRefreshSessionID) : null);
 
   // Referencias a componentes.
   const menu: any = useRef<HTMLUListElement>(null);
   const tabPanel: any = useRef(null);
-
   // Idioma de la aplicación.
   const [lang, setLang] = useState<string>("es");
+
+  // Si no hay token de autenticación, mostrar página de login
+  if (!token || !refreshToken) {
+    return <Login setToken={(new_token: string) => setToken(new_token)} setRefreshToken={(new_refresh_token: string) => setRefreshToken(new_refresh_token)} />
+  }
 
   /**
    * Función para añadir pestañas a panel de pestañas.
