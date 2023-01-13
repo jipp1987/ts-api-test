@@ -155,6 +155,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true) {
         const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
 
+        // await this.refreshToken();
         const query = fetch(url_, requestOptions)
             .then(res => res.json())
             .then(
@@ -319,7 +320,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 'Accept': 'application/json',
                 'Content-Type': 'application/json; charset=utf-8',
                 "Access-Control-Allow-Origin": "*",
-                'Authorization': 'Bearer ' + localStorage.getItem("jwt-token")
+                'Authorization': 'Bearer ' + sessionStorage.getItem(properties.tokenSessionID)
             },
 
             body: JSON.stringify(
@@ -375,10 +376,9 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 .then(
                     (result) => {
                         if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                            // Esto devuelve los tokens: el de autorización y el de refrescado.
-                            sessionStorage.setItem("jwt-token", result.response_object["token_jwt"]);
-                            sessionStorage.setItem("refresh-jwt-token", result.response_object["refresh_token"]);
-
+                            // Important actualizar la hora de último refrescado de token
+                            sessionStorage.setItem(properties.tokenRefreshSessionID, result.response_object);
+                            sessionStorage.setItem(properties.lastTokenTimeSessionID, getTimestampInSeconds().toString());
                             return true;
                         } else {
                             toast.error(result['response_object']);
