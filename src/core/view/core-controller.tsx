@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
-import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
+import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper, getTimestampInSeconds } from "../utils/helper-utils";
 import { VALIDATION_FUNCTION_TYPE } from "./validation_function";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
@@ -331,44 +331,67 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
-     * Obtiene el token de autorización para consultas a la base de datos.
+     * Comprueba si es necesario actualizar el token de JWT. Compprueba si ya ha pasado el tiempo de refrescado establecido en properties.
+     * 
+     * @returns true si es necesario, false si no lo es. 
+     */
+    protected isTokenRefreshNeeded(): boolean {
+        const previousTimeString: string | null = sessionStorage.getItem(properties.lastTokenTimeSessionID) !== null ?
+            sessionStorage.getItem(properties.lastTokenTimeSessionID) : null;
+
+        // Si en este punto no hay fecha de solicitud del token, lanzar excepción
+        if (previousTimeString === null) {
+            throw Error("$$No auth.");
+        }
+
+        // El tiempo está almacenado en milisegundos: sumo el tiempo de espera en milisegundos al tiempo anterior y lo comparo con el actual. 
+        // Si es mayor, toca refrescar el token.
+        const previousTime: number = parseInt(previousTimeString);
+        const currentTimestamp: number = getTimestampInSeconds();
+        const waitTimeInMs: number = properties.refreshTokenWaitTime;
+
+        return previousTime + waitTimeInMs >= currentTimestamp;
+    }
+
+    /**
+     * Solicita un refresh del token de autenticadción.
     */
-    protected async getValidationToken(): Promise<boolean> {
-        const requestBody: {} = {
-            request_object: { username: sessionStorage.getItem("username"), password: sessionStorage.getItem("password") }
-        };
+    protected async refreshToken(): Promise<boolean> {
+        if (this.isTokenRefreshNeeded()) {
+            const requestOptions: RequestInit = {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'default',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                    "Access-Control-Allow-Origin": "*",
+                    'Authorization': 'Bearer ' + sessionStorage.getItem(properties.tokenRefreshSessionID)
+                },
+            };
 
-        const requestOptions: RequestInit = {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'default',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*"
-            },
-            body: JSON.stringify(requestBody)
-        };
+            return await fetch(properties.userUrl + "/refresh_token", requestOptions)
+                .then(result => result.json())
+                .then(
+                    (result) => {
+                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                            // Esto devuelve los tokens: el de autorización y el de refrescado.
+                            sessionStorage.setItem("jwt-token", result.response_object["token_jwt"]);
+                            sessionStorage.setItem("refresh-jwt-token", result.response_object["refresh_token"]);
 
-        return await fetch(properties.userUrl + "/login", requestOptions)
-            .then(result => result.json())
-            .then(
-                (result) => {
-                    if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                        // Esto devuelve los tokens: el de autorización y el de refrescado.
-                        sessionStorage.setItem("jwt-token", result.response_object["token_jwt"]);
-                        sessionStorage.setItem("refresh-jwt-token", result.response_object["refresh_token"]);
-
-                        return true;
-                    } else {
-                        toast.error(result['response_object']);
-                        return false;
+                            return true;
+                        } else {
+                            toast.error(result['response_object']);
+                            return false;
+                        }
                     }
-                }
-            ).catch(error => {
-                toast.error(error.message);
-                return false;
-            });
+                ).catch(error => {
+                    toast.error(error.message);
+                    return false;
+                });
+        } else {
+            return false;
+        }
     }
 
     /**

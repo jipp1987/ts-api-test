@@ -106,16 +106,9 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         // Traer datos de la API. Utilizo un flag booleano porque a veces esta función se llama un par de veces, es una característica de React.
         // Así evito llamar a la API más veces de las necesarias.
         if (!this.isAlreadyMounted) {
-            this.getValidationToken().then(
-                (result: boolean) => {
-                    if (result) {
-                        this.fetchData();
-                    }
-                }
-                );
-            }
-            
-        this.isAlreadyMounted = true;
+            this.fetchData();
+            this.isAlreadyMounted = true;
+        }
     }
 
     /**
