@@ -152,10 +152,10 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
      * debe emplear then para captura el return interno, es decir, el resultado.
      */
-    makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true) {
+    private __makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true) {
         const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
 
-        // await this.refreshToken();
+        // Hacer consulta.
         const query = fetch(url_, requestOptions)
             .then(res => res.json())
             .then(
@@ -170,6 +170,33 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
             );
 
         return (waitStatus ? trackPromise(query) : query);
+    }
+
+    /**
+     * Envía una petición a la API. 
+     * 
+     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
+     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
+     * @param {boolean} waitStatus Si true, mostrará un modal waitStatus.
+     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
+     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
+     * debe emplear then para captura el return interno, es decir, el resultado.
+     */
+    protected async makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true): Promise<any> {
+        const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
+
+        // Refrescar el token si es necesario, no necesito esperar a que acabe la función, puede ser una tarea asíncrona paralela 
+        // porque lo que hago es comprobar si queda menos de la mitad del tiempo para que caduque el token y así solicitar su refrescado.
+        let proceed: boolean | undefined;
+        await this.refreshToken().then((result: boolean) => {
+            proceed = result;
+        }).catch((error) => {
+            toast.error((error.message));
+        });
+
+        if (proceed !== undefined) {
+            return this.__makeRequestToAPI(url_, requestOptions, waitStatus);
+        }
     }
 
     /**
@@ -332,32 +359,36 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
-     * Comprueba si es necesario actualizar el token de JWT. Compprueba si ya ha pasado el tiempo de refrescado establecido en properties.
+     * Comprueba si es necesario actualizar el token de JWT. Comprueba si queda menos de un tiempo estipulado en properties para que caduque el token JWT.
      * 
      * @returns true si es necesario, false si no lo es. 
      */
-    protected isTokenRefreshNeeded(): boolean {
+    private isTokenRefreshNeeded(): boolean {
         const previousTimeString: string | null = sessionStorage.getItem(properties.lastTokenTimeSessionID) !== null ?
             sessionStorage.getItem(properties.lastTokenTimeSessionID) : null;
 
-        // Si en este punto no hay fecha de solicitud del token, lanzar excepción
+        // Esto no debería suceder por la forma en que está programada la aplicación, pero bueno.
         if (previousTimeString === null) {
-            throw Error("$$No auth.");
+            // Error si no se ha detectado una llamada previa
+            throw Error("No token!!!");
+        } else {
+            // El tiempo está almacenado en milisegundos: sumo el tiempo de espera en milisegundos al tiempo anterior y lo comparo con el actual. 
+            // Si es mayor, toca refrescar el token.
+            const previousTime: number = parseInt(previousTimeString);
+            const currentTimestamp: number = getTimestampInSeconds();
+            // Tiempo para el refrescado del token. Multiplico por sesenta para pasarlo a timestamp.
+            const timeForRefresh: number = properties.timeForRefreshTokenInMinutes * 60;
+
+            // Si la fecha actual menos la de último refrescado es mayor que el tiempo de espera, solicito un refrescado 
+            // para evitar un problema de token expirado. El tiempo de espera debe ser siempre menor que el tiempo de expiración de la api, recomendado la mitad.
+            return currentTimestamp - previousTime > timeForRefresh;
         }
-
-        // El tiempo está almacenado en milisegundos: sumo el tiempo de espera en milisegundos al tiempo anterior y lo comparo con el actual. 
-        // Si es mayor, toca refrescar el token.
-        const previousTime: number = parseInt(previousTimeString);
-        const currentTimestamp: number = getTimestampInSeconds();
-        const waitTimeInMs: number = properties.refreshTokenWaitTime;
-
-        return previousTime + waitTimeInMs >= currentTimestamp;
     }
 
     /**
      * Solicita un refresh del token de autenticadción.
     */
-    protected async refreshToken(): Promise<boolean> {
+    private async refreshToken(): Promise<boolean> {
         if (this.isTokenRefreshNeeded()) {
             const requestOptions: RequestInit = {
                 method: 'POST',
@@ -369,6 +400,10 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                     "Access-Control-Allow-Origin": "*",
                     'Authorization': 'Bearer ' + sessionStorage.getItem(properties.tokenRefreshSessionID)
                 },
+
+                body: JSON.stringify(
+                    {}
+                )
             };
 
             return await fetch(properties.userUrl + "/refresh_token", requestOptions)
@@ -377,17 +412,15 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                     (result) => {
                         if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
                             // Important actualizar la hora de último refrescado de token
-                            sessionStorage.setItem(properties.tokenRefreshSessionID, result.response_object);
+                            sessionStorage.setItem(properties.tokenSessionID, result.response_object);
                             sessionStorage.setItem(properties.lastTokenTimeSessionID, getTimestampInSeconds().toString());
                             return true;
                         } else {
-                            toast.error(result['response_object']);
-                            return false;
+                            throw Error(result['response_object']);
                         }
                     }
                 ).catch(error => {
-                    toast.error(error.message);
-                    return false;
+                    throw error;
                 });
         } else {
             return false;
@@ -399,12 +432,12 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * 
      * @param newViewState Cambio opcional de estado del controlador.
      */
-    fetchData = (newViewState: string | null = null) => {
+    fetchData = async (newViewState: string | null = null): Promise<void> => {
         const request_options: RequestInit = this.getRequestOptions(ViewStates.LIST, this.fields, this.joins, this.filters, this.group_by, this.order);
 
         const { viewState } = this.state;
 
-        this.makeRequestToAPI(properties.apiUrl + "/select", request_options).then((result) => {
+        await this.makeRequestToAPI(properties.apiUrl + "/select", request_options).then((result) => {
             // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
             if (result !== undefined && result !== null) {
                 this.setState({
