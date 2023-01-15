@@ -90,14 +90,12 @@ export default function Login(props: ILoginProps) {
 
                 <div className="input-parent">
                     <label htmlFor="username">Username</label>
-                    <input ref={username} type="text" id="username" disabled={loading}
-                        onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }} required={true} />
+                    <input ref={username} type="text" id="username" disabled={loading} required={true} />
                 </div>
 
                 <div className="input-parent">
                     <label htmlFor="password">Password</label>
-                    <input ref={password} type="password" id="password" disabled={loading}
-                        onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }} required={true} />
+                    <input ref={password} type="password" id="password" disabled={loading} required={true} />
                 </div>
 
                 {error_message}
