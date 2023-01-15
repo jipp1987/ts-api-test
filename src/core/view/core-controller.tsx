@@ -2,6 +2,7 @@ import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
 import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper, getTimestampInSeconds } from "../utils/helper-utils";
+import { getRequestOptionsForAPICall } from "../utils/api-utils";
 import { VALIDATION_FUNCTION_TYPE } from "./validation_function";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
@@ -329,7 +330,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 break;
         }
 
-        return this.getRequestOptionsBody(request_body);
+        return this.getRequestOptionsBodyForDBOperations(request_body);
     }
 
     /**
@@ -338,24 +339,8 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param request_body 
      * @returns RequestInit
      */
-    protected getRequestOptionsBody(request_body: {}): RequestInit {
-        const requestOptions: RequestInit = {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'default',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*",
-                'Authorization': 'Bearer ' + sessionStorage.getItem(properties.tokenSessionID)
-            },
-
-            body: JSON.stringify(
-                request_body
-            )
-        };
-
-        return requestOptions;
+    protected getRequestOptionsBodyForDBOperations(request_body: {}): RequestInit {
+        return getRequestOptionsForAPICall("POST", sessionStorage.getItem(properties.tokenSessionID), request_body);
     }
 
     /**
@@ -390,21 +375,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     */
     private async refreshToken(): Promise<boolean> {
         if (this.isTokenRefreshNeeded()) {
-            const requestOptions: RequestInit = {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'default',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json; charset=utf-8',
-                    "Access-Control-Allow-Origin": "*",
-                    'Authorization': 'Bearer ' + sessionStorage.getItem(properties.tokenRefreshSessionID)
-                },
-
-                body: JSON.stringify(
-                    {}
-                )
-            };
+            const requestOptions: RequestInit = getRequestOptionsForAPICall("POST", sessionStorage.getItem(properties.tokenRefreshSessionID));
 
             return await fetch(properties.userUrl + "/refresh_token", requestOptions)
                 .then(result => result.json())
@@ -538,7 +509,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     loadItem = async (elementToSelect: T, newState: string | null = null) => {
         this.selectedItem = elementToSelect;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptionsBody(this.getRequestOptionsForLoad()));
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptionsBodyForDBOperations(this.getRequestOptionsForLoad()));
 
         if (promise !== undefined) {
             promise.then((result) => {

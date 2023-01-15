@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { properties } from "./../../../properties";
 import { getTimestampInSeconds } from "./../../../core/utils/helper-utils";
+import { getRequestOptionsForAPICall } from "./../../../core/utils/api-utils";
 
 import "./login.css"
 
@@ -31,22 +32,13 @@ export default function Login(props: ILoginProps) {
         setLoading(true);
         setError(null);
 
+        // El cuerpo de la petición espera un objeto plano "request_object" con dos atributos: username y password.
         const requestBody: {} = {
             request_object: { username: username.current.value, password: password.current.value }
         };
-
-        const requestOptions: RequestInit = {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'default',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*"
-            },
-
-            body: JSON.stringify(requestBody)
-        };
+        
+        // Opciones de la petición.
+        const requestOptions: RequestInit = getRequestOptionsForAPICall("POST", null, requestBody);
 
         return await fetch(properties.userUrl + "/login", requestOptions)
             .then(result => result.json())
@@ -56,8 +48,10 @@ export default function Login(props: ILoginProps) {
                         // Almaceno los dos tokens: el normal para las consultas y el de solicitud de refrescado
                         sessionStorage.setItem(properties.tokenSessionID, result.response_object["token_jwt"]);
                         sessionStorage.setItem(properties.tokenRefreshSessionID, result.response_object["refresh_token"]);
+
                         // Importante almacenar también la hora en milisegundos para saber cuándo hay que refrescar el token
                         sessionStorage.setItem(properties.lastTokenTimeSessionID, getTimestampInSeconds().toString());
+                        
                         // Utilizo las funciones pasadas como parámetro para forzar el refrescado del componente que tiene a éste como nodo
                         props.setToken(result.response_object["token_jwt"]);
                         props.setRefreshToken(result.response_object["refresh_token"]);
