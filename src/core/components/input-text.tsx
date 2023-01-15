@@ -92,6 +92,7 @@ export default function InputText(props: IInputTextProps) {
     // Si cambia la entidad asociada, debe volver a renderizarse.
     useEffect(() => {
         setValue(valueProps);
+        setEntity(props.entity);
     }, [props.entity, valueProps]);
 
     /**

@@ -244,7 +244,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
 
                 request_body = {
                     entity: target_entity,
-                    request_object: this.selectedItem
+                    request_object: this.selectedItem.toObject()
                 };
 
                 break;

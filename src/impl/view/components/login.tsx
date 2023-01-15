@@ -80,7 +80,7 @@ export default function Login(props: ILoginProps) {
     return (
         <div className="login-wrapper">
             <form id="loginForm" method="POST" action="/" onSubmit={(e: React.FormEvent<HTMLFormElement>) => login_fn(e)}>
-                <h2>Login to your account</h2>
+                <h2>Welcome</h2>
 
                 <div className="input-parent">
                     <label htmlFor="username">Username</label>

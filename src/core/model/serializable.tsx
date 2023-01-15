@@ -13,6 +13,15 @@ export default abstract class Serializable {
     }
 
     /**
+     * Devuelve el formato de fecha por defecto para la serialización de ese tipo de campos a json.
+     * 
+     * @returns string 
+     */
+    protected getDateFormatForJsonSerialize(): string {
+        return "YYYY-MM-DD HH:mm:ss";
+    }
+
+    /**
      * Devuelve un objeto plano para serializar a json.
      * 
      * @returns {}
@@ -45,7 +54,7 @@ export default abstract class Serializable {
                 }
             } else if (attr instanceof Date) {
                 // Si es una fecha, lo devuelvo como string
-                value = dateToString(attr);
+                value = dateToString(attr, this.getDateFormatForJsonSerialize());
             } else {
                 value = attr;
             }
