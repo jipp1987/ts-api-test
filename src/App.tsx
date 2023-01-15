@@ -100,6 +100,14 @@ export default function App() {
     return require("src/" + route).default;
   }
 
+  // Función para salir de la aplicación.
+  const logout = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    // Limpio la sesión y recargo la página
+    sessionStorage.clear();
+    window.location.reload();
+  }
+
   return (
     <IntlProvider locale={lang} messages={messages.get(lang)}>
       <div id="main">
@@ -114,6 +122,11 @@ export default function App() {
               <button style={{ background: 'transparent', color: 'ghostwhite' }} onClick={() => { setLang("es") }}>ESPAÑOL</button>
               <button style={{ background: 'transparent', color: 'ghostwhite', marginTop: '5px' }} onClick={() => { setLang("en") }}>ENGLISH</button>
             </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', marginTop: "5px" }}>
+              <button type='button' onClick={(e) => logout(e)}>Logout</button>
+            </div>
+
           </div>
         </div>
 

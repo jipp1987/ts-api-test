@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { properties } from "./../../../properties";
 import { getTimestampInSeconds } from "./../../../core/utils/helper-utils";
 
@@ -13,9 +13,23 @@ export default function Login(props: ILoginProps) {
     const username: any = useRef<HTMLInputElement>(null);
     const password: any = useRef<HTMLInputElement>(null);
 
+    // Mientras busca el usuario, utilizar un boolean para repintar el formulario
+    const [loading, setLoading] = useState<boolean>(false);
+    // Otro para mostrar un texto de error
+    const [error, setError] = useState<string | null>(null);
+
+    // Establecer foco en la carga del componente mediante un hook
+    useEffect(() => {
+        username.current.focus();
+    }, []);
+
     // Función de login
     const login_fn = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
+
+        // Activo loading para mostrar un texto en algún sitio.
+        setLoading(true);
+        setError(null);
 
         const requestBody: {} = {
             request_object: { username: username.current.value, password: password.current.value }
@@ -48,30 +62,48 @@ export default function Login(props: ILoginProps) {
                         props.setToken(result.response_object["token_jwt"]);
                         props.setRefreshToken(result.response_object["refresh_token"]);
                     } else {
-                        alert(result['response_object']);
+                        setError(result['response_object']);
                     }
                 }
             ).catch(error => {
-                alert(error.message);
+                setError(error.message);
+            }).finally(() => {
+                setLoading(false);
             });
     }
+
+    // Texto de carga
+    const loading_text: string = loading ? "Loading..." : "Login";
+
+    // Mensaje de error
+    const error_message: React.ReactNode | null = error !== null ?
+        <div className="input-parent">
+            <span style={{ color: "red", fontWeight: "bold", fontSize: "12px" }}>{error}</span>
+        </div>
+        : null;
 
     // Fonmulario
     return (
         <div className="login-wrapper">
-            <h1>Please Log In</h1>
-            <form method="POST" action="/" onSubmit={(e) => login_fn(e)}>
-                <label>
-                    <p>Username</p>
-                    <input ref={username} type="text" />
-                </label>
-                <label>
-                    <p>Password</p>
-                    <input ref={password} type="password" />
-                </label>
-                <div>
-                    <button type="submit">Submit</button>
+            <form id="loginForm" method="POST" action="/" onSubmit={(e: React.FormEvent<HTMLFormElement>) => login_fn(e)}>
+                <h2>Login to your account</h2>
+
+                <div className="input-parent">
+                    <label htmlFor="username">Username</label>
+                    <input ref={username} type="text" id="username" disabled={loading}
+                        onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }} required={true} />
                 </div>
+
+                <div className="input-parent">
+                    <label htmlFor="password">Password</label>
+                    <input ref={password} type="password" id="password" disabled={loading}
+                        onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }} required={true} />
+                </div>
+
+                {error_message}
+
+                <button type="submit" className='login-button' disabled={loading}>{loading_text}</button>
+
             </form>
         </div>
     )
