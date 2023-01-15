@@ -16,7 +16,7 @@ export class ValidationFunction {
     callback: VALIDATION_FUNCTION_TYPE;
     /**
      * Parámetros de la función. 
-     */ 
+     */
     functionParams?: Array<any>
 
     constructor(callback: VALIDATION_FUNCTION_TYPE, functionParams?: Array<any>) {

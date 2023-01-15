@@ -2,8 +2,8 @@ import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
 import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper, getTimestampInSeconds } from "../utils/helper-utils";
-import { getRequestOptionsForAPICall } from "../utils/api-utils";
-import { VALIDATION_FUNCTION_TYPE } from "./validation_function";
+import { getRequestOptionsForAPICall, callAPI } from "../utils/api-utils";
+import { VALIDATION_FUNCTION_TYPE } from "./validation-utils";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
 
@@ -144,63 +144,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
-     * Envía una petición a la API. 
-     * 
-     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
-     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
-     * @param {boolean} waitStatus Si true, mostrará un modal waitStatus.
-     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
-     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
-     * debe emplear then para captura el return interno, es decir, el resultado.
-     */
-    private __makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true) {
-        const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
-
-        // Hacer consulta.
-        const query = fetch(url_, requestOptions)
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    // Result es un objeto RequestResponse con atributos success, status_code y response_object
-                    return result;
-                },
-
-                (error) => {
-                    toast.error(error.message);
-                }
-            );
-
-        return (waitStatus ? trackPromise(query) : query);
-    }
-
-    /**
-     * Envía una petición a la API. 
-     * 
-     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
-     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
-     * @param {boolean} waitStatus Si true, mostrará un modal waitStatus.
-     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
-     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
-     * debe emplear then para captura el return interno, es decir, el resultado.
-     */
-    protected async makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true): Promise<any> {
-        const url_: string = url !== undefined && url !== null ? url : properties.apiUrl;
-
-        // Refrescar el token si es necesario, no necesito esperar a que acabe la función, puede ser una tarea asíncrona paralela 
-        // porque lo que hago es comprobar si queda menos de la mitad del tiempo para que caduque el token y así solicitar su refrescado.
-        let proceed: boolean | undefined;
-        await this.refreshToken().then((result: boolean) => {
-            proceed = result;
-        }).catch((error) => {
-            toast.error((error.message));
-        });
-
-        if (proceed !== undefined) {
-            return this.__makeRequestToAPI(url_, requestOptions, waitStatus);
-        }
-    }
-
-    /**
      * Devuelve las opciones para la request a la api.
      * 
      * @param {ViewStates} controllerState Estado del controlador. Si null, se utilizará el que tenga el controlador en un momento dado. 
@@ -330,7 +273,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                 break;
         }
 
-        return this.getRequestOptionsBodyForDBOperations(request_body);
+        return this.getRequestOptionsForDBOps(request_body);
     }
 
     /**
@@ -339,7 +282,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param request_body 
      * @returns RequestInit
      */
-    protected getRequestOptionsBodyForDBOperations(request_body: {}): RequestInit {
+    protected getRequestOptionsForDBOps(request_body: {}): RequestInit {
         return getRequestOptionsForAPICall("POST", sessionStorage.getItem(properties.tokenSessionID), request_body);
     }
 
@@ -399,6 +342,33 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
+     * Envía una petición a la API. 
+     * 
+     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
+     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
+     * @param {boolean} waitStatus Si true, mostrará un modal waitStatus.
+     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
+     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
+     * debe emplear then para captura el return interno, es decir, el resultado.
+     */
+    protected async makeRequestToAPI(url: string | null, requestOptions: RequestInit, waitStatus: boolean = true): Promise<any> {
+        // Refrescar el token si es necesario, no necesito esperar a que acabe la función, puede ser una tarea asíncrona paralela 
+        // porque lo que hago es comprobar si queda menos de la mitad del tiempo para que caduque el token y así solicitar su refrescado.
+        let proceed: boolean | undefined;
+        await this.refreshToken().then((result: boolean) => {
+            proceed = result;
+        }).catch((error) => {
+            throw new Error(error.message);
+        });
+
+        if (proceed !== undefined) {
+            const api_url: string = url !== undefined && url !== null ? url : properties.apiUrl;
+            const query: Promise<any> = callAPI(api_url, requestOptions);
+            return (waitStatus ? trackPromise(query) : query);
+        }
+    }
+
+    /**
      * Hace una consulta a la API para traer datos para el listado.
      * 
      * @param newViewState Cambio opcional de estado del controlador.
@@ -409,14 +379,18 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         const { viewState } = this.state;
 
         await this.makeRequestToAPI(properties.apiUrl + "/select", request_options).then((result) => {
-            // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
-            if (result !== undefined && result !== null) {
+            // Si el resultado ha sido correcto es un código 200
+            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
                 this.setState({
                     items: this.convertFromJsonToEntityList(result['response_object']),
                     viewState: newViewState !== null ? newViewState : viewState
                 });
+            } else {
+                throw new Error(result['response_object']);
             }
-        });
+        }).catch(
+            (error) => toast.error(error.message)
+        );
     }
 
     /**
@@ -450,9 +424,9 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                     this.setState({ viewState: ViewStates.DETAIL });
                     toast.success(result['response_object']);
                 } else {
-                    toast.error(result['response_object']);
+                    throw new Error(result['response_object']);
                 }
-            });
+            }).catch((error) => toast.error(error.message));
         }
     };
 
@@ -477,9 +451,9 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                     // Cargar datos
                     this.fetchData();
                 } else {
-                    toast.error(result['response_object']);
+                    throw new Error(result['response_object']);
                 }
-            });
+            }).catch((error) => toast.error(error.message));
         }
     }
 
@@ -488,7 +462,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     * @param elementToSelect 
     * @returns request_object.
     */
-    protected getRequestOptionsForLoad(): {} {
+    protected getRequestBodyForLoad(): {} {
         if (this.selectedItem !== null) {
             const requestBody: {} = {
                 entity: this.table_name,
@@ -509,7 +483,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     loadItem = async (elementToSelect: T, newState: string | null = null) => {
         this.selectedItem = elementToSelect;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptionsBodyForDBOperations(this.getRequestOptionsForLoad()));
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/load", this.getRequestOptionsForDBOps(this.getRequestBodyForLoad()));
 
         if (promise !== undefined) {
             promise.then((result) => {
@@ -523,10 +497,12 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                         });
                     }
                 } else {
-                    toast.error(result['response_object']);
                     this.selectedItem = null;
+                    throw new Error(result['response_object']);
                 }
-            }).catch(error => console.error(error));
+            }).catch((error) => {
+                toast.error(error.message);
+            });
         }
     }
 
@@ -608,7 +584,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     * @param {json} json_result 
     * @returns {List} Lista de entidades según el modelo de datos correspondiente a la vista. 
     */
-    convertFromJsonToEntityList(json_result: Array<string>) {
+    protected convertFromJsonToEntityList(json_result: Array<string>): Array<T> {
         var result = [];
 
         // Convertir entidad a entidad.
@@ -632,40 +608,38 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param {string} target_entity Entidad objetivo de la búsqueda.
      * @returns {list} Devuelve una lista de resultados obtenidos de la api, o bien una lista vacía si no encuentra nada.
      */
-    async suggestEntities(inputText: string, filter_fields: Array<string>, select_fields: Array<string>, id_field_name: string, target_entity: string) {
-        var list = [];
+    async suggestEntities(inputText: string, filter_fields: Array<string>, select_fields: Array<string>,
+        id_field_name: string, target_entity: string): Promise<Array<any>> {
+        // Inicializo la lista de filtros y compruebo si es el primero para no añadirle un operador OR.
+        const filters = [];
 
-        if (inputText !== undefined && inputText !== null) {
-            // Inicializo la lista de filtros y compruebo si es el primero para no añadirle un operador OR.
-            const filters = [];
-
-            for (var i = 0; i < filter_fields.length; i++) {
-                if (i === 0) {
-                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText));
-                } else {
-                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText, OperatorTypes.OR));
-                }
+        for (var i = 0; i < filter_fields.length; i++) {
+            if (i === 0) {
+                filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText));
+            } else {
+                filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText, OperatorTypes.OR));
             }
+        }
 
-            // Campos: el id tengo que pasarlo siempre
-            const fields = [
-                new FieldClause(id_field_name),
-            ];
+        // Campos: el id tengo que pasarlo siempre
+        const fields = [
+            new FieldClause(id_field_name),
+        ];
 
-            // Añadir resto de campos
-            for (let field of select_fields) {
-                fields.push(new FieldClause(field));
-            }
+        // Añadir resto de campos
+        for (let field of select_fields) {
+            fields.push(new FieldClause(field));
+        }
 
-            // Buscar una forma de poder pasar null o nada mejor.
-            const result = await this.makeRequestToAPI(properties.apiUrl + '/select', this.getRequestOptions(ViewStates.LIST, fields, null, filters, null, null, target_entity), false);
-
-            // Determinar el resultado
-            if (result !== undefined && result !== null) {
+        // Buscar una forma de poder pasar null o nada mejor.
+        const req_options = this.getRequestOptions(ViewStates.LIST, fields, null, filters, null, null, target_entity);
+        return await this.makeRequestToAPI(properties.apiUrl + '/select', req_options, false).then(
+            (result) => {
+                // Determinar el resultado
                 // Es una lista de diccionarios: aquellas claves que no formen parte de la lista de fields, las elimino
-                list = result['response_object'];
+                const r_list = result['response_object'];
 
-                if (list !== undefined && list !== null && list.length > 0) {
+                if (r_list !== undefined && r_list !== null && r_list.length > 0) {
                     // Eliminar las claves que no formen parte del listado de campos seleccionado
                     var selected_fields: Array<string> = [];
                     var not_selected_fields: Array<string> = [];
@@ -675,21 +649,23 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
 
                     // Como todos los elementos del resultado tienen las mismas claves, utilizo el primer elemento para obtener aquellas claves que no forman parte
                     // del conjunto de campos seleccionados
-                    Object.keys(list[0]).forEach(function (k) {
+                    Object.keys(r_list[0]).forEach(function (k) {
                         if (!selected_fields.includes(k)) {
                             not_selected_fields.push(k);
                         }
                     });
 
                     // Recorro los diccionarios y elimino esas claves
-                    list.forEach((dict: any) => not_selected_fields.forEach(e => delete dict[e]));
+                    r_list.forEach((dict: any) => not_selected_fields.forEach(e => delete dict[e]));
+                    return r_list;
                 } else {
-                    list = [];
+                    return [];
                 }
             }
-        }
-
-        return list;
+        ).catch((error) => {
+            toast.error(error.message);
+            return [];
+        });
     }
 
 
@@ -774,7 +750,8 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param {string} field_code_name Si null, se utilizará el nombre del campo "código" del elemento seleccionado.
      * @param {List[FilterClause]} additional_filters Filtros adicionales que se quisieran introducir.
      */
-    code_is_valid = async (item_to_check: T | null = null, field_code_name: string | null = null, additional_filters: Array<FilterClause> | null = null): Promise<React.ReactNode | null> => {
+    code_is_valid = async (item_to_check: T | null = null, field_code_name: string | null = null,
+        additional_filters: Array<FilterClause> | null = null): Promise<React.ReactNode | null> => {
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         var field_code_name_: string = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
 
@@ -798,26 +775,26 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         }
 
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        const result = await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null));
+        return await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null)).then(
+            (result) => {
+                if (result['success'] === true) {
+                    // Si count es mayor que cero, es que ya existe un registro con el mismo código
+                    const count: number = result['response_object'];
 
-        // Determinar el resultado
-        if (result !== undefined && result !== null) {
-            if (result['success'] === true) {
-                // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                const count: number = result['response_object'];
-
-                if (count !== undefined && count !== null && count > 0) {
-                    // Avisar al usuario
-                    return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                    if (count !== undefined && count !== null && count > 0) {
+                        // Avisar al usuario
+                        return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                    } else {
+                        return null;
+                    }
                 } else {
-                    return null;
+                    throw new Error(result['response_object']);
                 }
-            } else {
-                return null;
             }
-        } else {
+        ).catch((error) => {
+            toast.error(error.message);
             return null;
-        }
+        })
     }
 
     /**

@@ -351,15 +351,19 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
         if (newValue !== undefined && newValue !== null && newValue.length > 1) {
             // Activo el modo de búsqueda activa
             setIsSearching(true);
-            
+
             // Establezco un timeout para que no empiece a buscar hasta pasado unos milisegundos y dar tiempo a que el usuario termine de escribir
             timerRef.current = setTimeout(async () => {
                 // Búsqueda asíncrona
-                setResult(await props.suggestAction(newValue));
-                // Visualizar la tabla de resultados
-                setIsResultTableVisible(true);
-                // Desactivo el modo de búsqueda activa
-                setIsSearching(false);
+                await props.suggestAction(newValue).then(
+                    (result: any) => {
+                        setResult(result);
+                        // Visualizar la tabla de resultados
+                        setIsResultTableVisible(true);
+                        // Desactivo el modo de búsqueda activa
+                        setIsSearching(false);
+                    }
+                );
             }, 500);
         }
     }
@@ -391,7 +395,7 @@ export default function SuggestionBox(props: ISuggestionBoxProps) {
     const requiredLabel = props.isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
     // Acción de búsqueda. Utilizo preventDefault para evitar que se accione el submit del formulario.
-    const findAction = function(e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) {
+    const findAction = function (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) {
         e.preventDefault();
         props.findAction();
         return false;

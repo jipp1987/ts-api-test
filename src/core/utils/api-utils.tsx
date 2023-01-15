@@ -47,3 +47,27 @@ export function getRequestOptionsForAPICall(api_method: 'POST' | 'GET' | 'DELETE
 
     return requestOptions;
 }
+
+
+/**
+     * Envía una petición a la API. 
+     * 
+     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
+     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
+     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
+     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
+     * debe emplear then para captura el return interno, es decir, el resultado.
+     */
+export function callAPI(url: string, requestOptions: RequestInit) {
+    // Hacer consulta.
+    return fetch(url, requestOptions)
+        .then(res => res.json())
+        .then(
+            (result) => {
+                // Result es un objeto RequestResponse con atributos success, status_code y response_object
+                return result;
+            }
+        ).catch((error) => {
+            throw error;
+        });
+}
