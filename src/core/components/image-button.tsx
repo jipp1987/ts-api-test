@@ -51,22 +51,13 @@ interface IImageButtonProps {
 export default function ImageButton({ id, title, type, style, className, onClick, disabled, tooltip }: IImageButtonProps) {
     // Defino habilitado como atributo de estado del componente porque puede habilitarse/desabilitarse durante un rerender
     const [enabled, setEnabled] = useState<boolean>(disabled !== undefined && disabled === true ? false : true);
-    const [buttonId, setButtonId] = useState<string>(id === undefined || id === null ? generateUuid() : id);
-    const [buttonType, setButtonType] = useState<"button" | "submit" | "reset">(type === undefined || type === null ? 'button' : type);
+    const [buttonId] = useState<string>(id === undefined || id === null ? generateUuid() : id);
+    const [buttonType] = useState<"button" | "submit" | "reset">(type === undefined || type === null ? 'button' : type);
 
     // Utilizo un hook para forzar el rerender el componente en caso de que desde las propiedades cambie el valor
     useEffect(() => {
         setEnabled(!disabled);
     }, [disabled]);
-
-    // Si cambia el id o el tipo de botón, forzar rerender.
-    useEffect(() => {
-        setButtonId(id === undefined || id === null ? generateUuid() : id);
-    }, [id]);
-
-    useEffect(() => {
-        setButtonType(type === undefined || type === null ? 'button' : type);
-    }, [type]);
 
     // Etiqueta del botón
     const label = title !== undefined && title !== null ?

@@ -323,8 +323,10 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
             <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null} /> :
             <ImageButton title='i18n_save_button' className='save-button' type='submit' />;
 
+        // Le paso una key generada aleatoriamente porque este componente se va a repintar dentro de la misma vista, así fuerzo a que todos los hijos
+        // se repinten completamente. Si no lo hago, los botones podrían no funcionar bien a pesar de estar aparentemente bien renderizados.
         return (
-            <div className='toolbar'>
+            <div className='toolbar' key={generateUuid()}>
                 <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
                 {editSaveButton}
             </div>
