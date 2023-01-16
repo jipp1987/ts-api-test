@@ -104,15 +104,15 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
         var select_button = null;
         if (this.props.selectAction !== undefined) {
             const action_select = this.props.selectAction;
-            select_button = <ImageButton className='select-button' onClick={() => action_select(d)} />;
+            select_button = <ImageButton className='select-button' onClick={() => action_select(d)}  tooltip="Select" />;
         }
 
         // Columna de acciones
         const actionColumn = <td key={uuid + ":" + table_name + ":column:actions:" + d.uuid} style={{width: '10px'}}>
             <div className="action-column-div">
                 {select_button}
-                <ImageButton className='edit-button' onClick={() => this.props.editAction(d)} />
-                <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} />
+                <ImageButton className='edit-button' onClick={() => this.props.editAction(d)} tooltip="Edit" />
+                <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} tooltip="Delete" />
             </div>
         </td>;
 

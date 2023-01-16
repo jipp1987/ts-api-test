@@ -37,14 +37,7 @@ interface IInputTextProps {
      * 
      * @param params 
      */
-    validation?(params?: any):  boolean | Promise<boolean> | null;
-
-    /**
-     * Acción posterior a la asignación y la validación.
-     * 
-     * @param params 
-     */
-    subsequentAction?(params?: any): void;
+    validation?(params?: any): boolean | Promise<boolean> | null;
 }
 
 
@@ -143,7 +136,7 @@ export default function InputText(props: IInputTextProps) {
         // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.
         var isValid = null;
 
-        const { validation, subsequentAction } = props;
+        const { validation } = props;
 
         // Validador de código
         if (validation !== undefined && validation !== null) {
@@ -151,16 +144,9 @@ export default function InputText(props: IInputTextProps) {
             isValid = await validation();
         }
 
-        // Si ha llegado hasta aquí y hay acción posterior (y no ha habido validación o ésta ha sido correcta), ejecutar la acción
-        var actionHasHappened = null;
-        if ((isValid === null || isValid) && subsequentAction !== undefined && subsequentAction !== null) {
-            await subsequentAction();
-            actionHasHappened = true;
-        }
-
         // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 
         // podemos forzar el click. Sólo pasamos por aquí si la validación ha sido ok.
-        if ((isValid || actionHasHappened) && event !== undefined && event !== null) {
+        if (isValid && event !== undefined && event !== null) {
             const relatedTarget: any = event.relatedTarget;
 
             if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
@@ -207,7 +193,7 @@ export default function InputText(props: IInputTextProps) {
                     maxLength={maxLength}
                     minLength={minLength}
                     value={value}
-                    style={ isFloat || isInteger ? { textAlign: 'right', float: 'left' } : { float: 'left' }}
+                    style={isFloat || isInteger ? { textAlign: 'right', float: 'left' } : { float: 'left' }}
                     required={isRequired ? true : false} />
 
                 {requiredLabel}
