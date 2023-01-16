@@ -1,8 +1,8 @@
 import React from 'react';
 
 import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
-import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper, getTimestampInSeconds } from "../utils/helper-utils";
-import { getRequestOptionsForAPICall, callAPI } from "../utils/api-utils";
+import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
+import { getRequestOptionsForAPICall, callAPI, refreshToken, TOKEN_SESSION_ID } from "../utils/api-utils";
 import { VALIDATION_FUNCTION_TYPE } from "./validation-utils";
 import DataTableHeader from "./table-header";
 import BaseEntity from "./../model/base_entity";
@@ -159,7 +159,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param {SelectActions} select_action Acciones especiales para select. Si null, será una select normal. Sólo aplica para estados LIST y VALIDATE. 
      * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
-    getRequestOptions(controllerState: string | null = null, fields: Array<FieldClause> | null, joins: Array<JoinClause> | null,
+    protected getRequestOptionsForViewState(controllerState: string | null = null, fields: Array<FieldClause> | null, joins: Array<JoinClause> | null,
         filters: Array<FilterClause> | null, group_by: Array<GroupByClause> | null,
         order: Array<OrderByClause> | null, target_entity?: string): RequestInit {
         let request_body;
@@ -283,61 +283,24 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @returns RequestInit
      */
     protected getRequestOptionsForDBOps(request_body: {}): RequestInit {
-        return getRequestOptionsForAPICall("POST", sessionStorage.getItem(properties.tokenSessionID), request_body);
+        return getRequestOptionsForAPICall("POST", sessionStorage.getItem(TOKEN_SESSION_ID), request_body);
     }
 
-    /**
-     * Comprueba si es necesario actualizar el token de JWT. Comprueba si queda menos de un tiempo estipulado en properties para que caduque el token JWT.
+    /** Devuelve un objeto para solicitud de carga de entidad.
      * 
-     * @returns true si es necesario, false si no lo es. 
-     */
-    private isTokenRefreshNeeded(): boolean {
-        const previousTimeString: string | null = sessionStorage.getItem(properties.lastTokenTimeSessionID) !== null ?
-            sessionStorage.getItem(properties.lastTokenTimeSessionID) : null;
-
-        // Esto no debería suceder por la forma en que está programada la aplicación, pero bueno.
-        if (previousTimeString === null) {
-            // Error si no se ha detectado una llamada previa
-            throw Error("No token!!!");
-        } else {
-            // El tiempo está almacenado en milisegundos: sumo el tiempo de espera en milisegundos al tiempo anterior y lo comparo con el actual. 
-            // Si es mayor, toca refrescar el token.
-            const previousTime: number = parseInt(previousTimeString);
-            const currentTimestamp: number = getTimestampInSeconds();
-            // Tiempo para el refrescado del token. Multiplico por sesenta para pasarlo a timestamp.
-            const timeForRefresh: number = properties.timeForRefreshTokenInMinutes * 60;
-
-            // Si la fecha actual menos la de último refrescado es mayor que el tiempo de espera, solicito un refrescado 
-            // para evitar un problema de token expirado. El tiempo de espera debe ser siempre menor que el tiempo de expiración de la api, recomendado la mitad.
-            return currentTimestamp - previousTime > timeForRefresh;
-        }
-    }
-
-    /**
-     * Solicita un refresh del token de autenticadción.
+     * @param elementToSelect 
+     * @returns request_object.
     */
-    private async refreshToken(): Promise<boolean> {
-        if (this.isTokenRefreshNeeded()) {
-            const requestOptions: RequestInit = getRequestOptionsForAPICall("POST", sessionStorage.getItem(properties.tokenRefreshSessionID));
+    protected getRequestBodyForLoad(): {} {
+        if (this.selectedItem !== null) {
+            const requestBody: {} = {
+                entity: this.table_name,
+                request_object: { entity_id: this.selectedItem.getIdFieldValue() }
+            };
 
-            return await fetch(properties.userUrl + "/refresh_token", requestOptions)
-                .then(result => result.json())
-                .then(
-                    (result) => {
-                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                            // Important actualizar la hora de último refrescado de token
-                            sessionStorage.setItem(properties.tokenSessionID, result.response_object);
-                            sessionStorage.setItem(properties.lastTokenTimeSessionID, getTimestampInSeconds().toString());
-                            return true;
-                        } else {
-                            throw Error(result['response_object']);
-                        }
-                    }
-                ).catch(error => {
-                    throw error;
-                });
+            return requestBody;
         } else {
-            return false;
+            throw Error("$$No entity");
         }
     }
 
@@ -355,7 +318,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         // Refrescar el token si es necesario, no necesito esperar a que acabe la función, puede ser una tarea asíncrona paralela 
         // porque lo que hago es comprobar si queda menos de la mitad del tiempo para que caduque el token y así solicitar su refrescado.
         let proceed: boolean | undefined;
-        await this.refreshToken().then((result: boolean) => {
+        await refreshToken().then((result: boolean) => {
             proceed = result;
         }).catch((error) => {
             throw new Error(error.message);
@@ -374,7 +337,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param newViewState Cambio opcional de estado del controlador.
      */
     fetchData = async (newViewState: string | null = null): Promise<void> => {
-        const request_options: RequestInit = this.getRequestOptions(ViewStates.LIST, this.fields, this.joins, this.filters, this.group_by, this.order);
+        const request_options: RequestInit = this.getRequestOptionsForViewState(ViewStates.LIST, this.fields, this.joins, this.filters, this.group_by, this.order);
 
         const { viewState } = this.state;
 
@@ -415,7 +378,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
             url = properties.apiUrl + "/create";
         }
 
-        const promise = this.makeRequestToAPI(url, this.getRequestOptions(null, this.fields, this.joins, this.filters, this.group_by, this.order));
+        const promise = this.makeRequestToAPI(url, this.getRequestOptionsForViewState(null, this.fields, this.joins, this.filters, this.group_by, this.order));
 
         if (promise !== undefined) {
             promise.then((result) => {
@@ -439,7 +402,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         // Asigno a itemToDelete el elemento pasado como parámetro.
         this.itemToDelete = elementToDelete;
 
-        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptions(ViewStates.DELETE, this.fields, this.joins,
+        const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptionsForViewState(ViewStates.DELETE, this.fields, this.joins,
             this.filters, this.group_by, this.order));
 
         if (promise !== undefined) {
@@ -454,24 +417,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                     throw new Error(result['response_object']);
                 }
             }).catch((error) => toast.error(error.message));
-        }
-    }
-
-    /** Devuelve un objeto para solicitud de carga de entidad.
-    * 
-    * @param elementToSelect 
-    * @returns request_object.
-    */
-    protected getRequestBodyForLoad(): {} {
-        if (this.selectedItem !== null) {
-            const requestBody: {} = {
-                entity: this.table_name,
-                request_object: { entity_id: this.selectedItem.getIdFieldValue() }
-            };
-
-            return requestBody;
-        } else {
-            throw Error("$$No entity");
         }
     }
 
@@ -632,7 +577,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         }
 
         // Buscar una forma de poder pasar null o nada mejor.
-        const req_options = this.getRequestOptions(ViewStates.LIST, fields, null, filters, null, null, target_entity);
+        const req_options = this.getRequestOptionsForViewState(ViewStates.LIST, fields, null, filters, null, null, target_entity);
         return await this.makeRequestToAPI(properties.apiUrl + '/select', req_options, false).then(
             (result) => {
                 // Determinar el resultado
@@ -775,7 +720,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         }
 
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        return await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null)).then(
+        return await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptionsForViewState(ViewStates.VALIDATE, null, null, filters, null, null)).then(
             (result) => {
                 if (result['success'] === true) {
                     // Si count es mayor que cero, es que ya existe un registro con el mismo código

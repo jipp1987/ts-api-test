@@ -51,27 +51,36 @@ interface IImageButtonProps {
 export default function ImageButton({ id, title, type, style, className, onClick, disabled, tooltip }: IImageButtonProps) {
     // Defino habilitado como atributo de estado del componente porque puede habilitarse/desabilitarse durante un rerender
     const [enabled, setEnabled] = useState<boolean>(disabled !== undefined && disabled === true ? false : true);
-    const [button_id] = useState<string>(id === undefined || id === null ? generateUuid() : id);
-    const [button_type] = useState<"button" | "submit" | "reset">(type === undefined || type === null ? 'button' : type);
+    const [buttonId, setButtonId] = useState<string>(id === undefined || id === null ? generateUuid() : id);
+    const [buttonType, setButtonType] = useState<"button" | "submit" | "reset">(type === undefined || type === null ? 'button' : type);
 
     // Utilizo un hook para forzar el rerender el componente en caso de que desde las propiedades cambie el valor
     useEffect(() => {
         setEnabled(!disabled);
     }, [disabled]);
 
+    // Si cambia el id o el tipo de botón, forzar rerender.
+    useEffect(() => {
+        setButtonId(id === undefined || id === null ? generateUuid() : id);
+    }, [id]);
+
+    useEffect(() => {
+        setButtonType(type === undefined || type === null ? 'button' : type);
+    }, [type]);
+
     // Etiqueta del botón
     const label = title !== undefined && title !== null ?
         <span className='btn-text'><FormattedMessage id={title} /></span> : null;
 
     // Tooltip
-    var container_id: string = "btn-container_" + button_id;
+    var container_id: string = "btn-container_" + buttonId;
     const tooltip_component: React.ReactNode | null = tooltip !== undefined && tooltip != null
         ? <Tooltip parentId={container_id} text={tooltip} /> : null;
 
     return (
         <>
             <div id={container_id} className={enabled ? 'btn-container' : 'btn-container-disabled'}>
-                <button className="custom-button" id={button_id} type={button_type} onClick={onClick} style={style} disabled={!enabled}>
+                <button className="custom-button" id={buttonId} type={buttonType} onClick={onClick} style={style} disabled={!enabled}>
                     <span className={'image-button ' + className}></span>
                     {label}
                 </button>

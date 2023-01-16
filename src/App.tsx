@@ -4,9 +4,10 @@ import { IntlProvider, FormattedMessage } from "react-intl";
 import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
+import { TOKEN_SESSION_ID, TOKEN_REFRESH_SESSION_ID } from "./core/utils/api-utils";
+
 import { VIEW_MAP } from './impl/view/view_map';
 import Login from './impl/view/components/login';
-import { properties } from "./properties";
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
@@ -62,10 +63,10 @@ function Menu({ onClick, parentRef }: MenuProps) {
  */
 export default function App() {
   // Variables de estado para controlar si se va a pintar el formulario de login o el formulario principal de la petición
-  const [token, setToken] = useState<string | null>(sessionStorage.getItem(properties.tokenSessionID) !== null ?
-    sessionStorage.getItem(properties.tokenSessionID) : null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(sessionStorage.getItem(properties.tokenRefreshSessionID) !== null ?
-    sessionStorage.getItem(properties.tokenRefreshSessionID) : null);
+  const [token, setToken] = useState<string | null>(sessionStorage.getItem(TOKEN_SESSION_ID) !== null ?
+    sessionStorage.getItem(TOKEN_SESSION_ID) : null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(sessionStorage.getItem(TOKEN_REFRESH_SESSION_ID) !== null ?
+    sessionStorage.getItem(TOKEN_REFRESH_SESSION_ID) : null);
 
   // Referencias a componentes.
   const menu: any = useRef<HTMLUListElement>(null);
