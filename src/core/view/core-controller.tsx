@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
+import { FilterClause, FilterTypes, FieldClause, OperatorTypes, OrderByClause, JoinClause, GroupByClause } from '../utils/dao-utils';
 import { ViewStates, ViewValidators, get_property_value_by_name, ModalHelper } from "../utils/helper-utils";
 import { getRequestOptionsForAPICall, callAPI, refreshToken, TOKEN_SESSION_ID } from "../utils/api-utils";
 import { VALIDATION_FUNCTION_TYPE } from "./validation-utils";
@@ -25,8 +25,17 @@ export interface ICoreControllerProps {
 }
 
 interface ICoreControllerState {
+    /**
+     * Estado de la vista.
+     */
     viewState: string;
+    /**
+     * Elementos cargados desde la base de datos en la consulta de la tabla.
+     */
     items: Array<BaseEntity>;
+    /**
+     * Array de modales.
+     */
     modalList: Array<ModalHelper>;
 }
 
@@ -40,6 +49,11 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * Límite de filas.
      */
     rowLimit: number;
+
+    /**
+     * Valor para paginación de la tabla.
+     */
+    rowOffset: number;
 
     /**
      * Campos para la SELECT.
@@ -100,6 +114,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         super(props);
 
         this.rowLimit = 50;
+        this.rowOffset = 0;
         this.fields = null;
         this.table_name = "";
         this.filters = null;
@@ -144,24 +159,44 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
+    * Convierte un array json a un array de entidades del modelo de datos.
+    * 
+    * @param {json} json_result 
+    * @returns {List} Lista de entidades según el modelo de datos correspondiente a la vista. 
+    */
+    protected convertFromJsonToEntityList(json_result: Array<string>): Array<T> {
+        var result = [];
+
+        // Convertir entidad a entidad.
+        if (json_result !== null && json_result.length > 0) {
+            for (let i = 0; i < json_result.length; i++) {
+                result.push(this.entity_class.fromJSON(json_result[i]));
+            }
+        }
+
+        return result;
+    }
+
+    // MÉTODOS API
+    /**
      * Devuelve las opciones para la request a la api.
      * 
-     * @param {ViewStates} controllerState Estado del controlador. Si null, se utilizará el que tenga el controlador en un momento dado. 
-     * Se utiliza para poder hacer una acción diferente a la que corresponda al estado del controlador, es decir: ViewStates.LIST -> Select, ViewStates.EDIT -> Edición, 
-     * ViewStates.DETAIL -> Detalle (hace lo mismo que edit). También es útil para realizar un par de acciones más: ViewStates.DELETE y ViewStates.VALIDATE: los ViewControllers no 
-     * están de forma natural en estos estados, así que cuando se desea eliminar un elemento o hacer una consulta para algún tipo de validación hay que pasar estos dos estados según 
-     * corresponda.
-     * @param {List[FieldClause]} fields Listado de FieldClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[JoinClause]} joins Listado de JoinClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[FilterClause]} filters Listado de FilterClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[GroupByClause]} group_by Listado de GroupByClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[OrderByClause]} order Listado de OrderByClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {SelectActions} select_action Acciones especiales para select. Si null, será una select normal. Sólo aplica para estados LIST y VALIDATE. 
+     * @param {ViewStates} controllerState Estado del controlador. Si null, se utilizará el que tenga el controlador en un momento dado.
+     * @param {List[FieldClause]} fields Listado de FieldClause para selects.
+     * @param {List[JoinClause]} joins Listado de JoinClause para selects.
+     * @param {List[FilterClause]} filters Listado de FilterClause para selects.
+     * @param {List[GroupByClause]} group_by Listado de GroupByClause para selects.
+     * @param {List[OrderByClause]} order Listado de OrderByClause para selects.
+     * @param {number} offset
+     * @param {number} limit
+     * @param {target_entity} Entidad objetivo. Utiliza la del controlador si es undefined o null.
+     * 
      * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
     protected getRequestOptionsForViewState(controllerState: string | null = null, fields: Array<FieldClause> | null, joins: Array<JoinClause> | null,
         filters: Array<FilterClause> | null, group_by: Array<GroupByClause> | null,
-        order: Array<OrderByClause> | null, target_entity?: string): RequestInit {
+        order: Array<OrderByClause> | null, offset: number | null, limit: number | null,
+        target_entity?: string): RequestInit {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -266,7 +301,9 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
                         joins: joins_param,
                         filters: filters_param,
                         group_by: group_by_param,
-                        order: order_param
+                        order: order_param,
+                        offset: offset,
+                        limit: limit
                     }
                 };
 
@@ -337,7 +374,8 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
      * @param newViewState Cambio opcional de estado del controlador.
      */
     fetchData = async (newViewState: string | null = null): Promise<void> => {
-        const request_options: RequestInit = this.getRequestOptionsForViewState(ViewStates.LIST, this.fields, this.joins, this.filters, this.group_by, this.order);
+        const request_options: RequestInit = this.getRequestOptionsForViewState(ViewStates.LIST, this.fields, this.joins, this.filters,
+            this.group_by, this.order, this.rowOffset, this.rowLimit);
 
         const { viewState } = this.state;
 
@@ -378,7 +416,8 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
             url = properties.apiUrl + "/create";
         }
 
-        const promise = this.makeRequestToAPI(url, this.getRequestOptionsForViewState(null, this.fields, this.joins, this.filters, this.group_by, this.order));
+        const promise = this.makeRequestToAPI(url, this.getRequestOptionsForViewState(null, this.fields, this.joins, this.filters,
+            this.group_by, this.order, this.rowOffset, this.rowLimit));
 
         if (promise !== undefined) {
             promise.then((result) => {
@@ -403,7 +442,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         this.itemToDelete = elementToDelete;
 
         const promise = this.makeRequestToAPI(properties.apiUrl + "/delete", this.getRequestOptionsForViewState(ViewStates.DELETE, this.fields, this.joins,
-            this.filters, this.group_by, this.order));
+            this.filters, this.group_by, this.order, this.rowOffset, this.rowLimit));
 
         if (promise !== undefined) {
             promise.then((result) => {
@@ -452,94 +491,24 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     }
 
     /**
-     * Añade una cláusula order_by al orden del controlador, o bien modifica una existente; depende del flag de la cabecera pasada como parámetro.
+     * Devuelve un recuento de registros de acuerdo con los filtros y joins actuales del controlador.
      * 
-     * @param {HeaderHelper} header 
+     * @returns Promise<number>
+     * @throws Error si sucede algún problema al llamar a la API.
      */
-    add_order_by_header(header: DataTableHeader) {
-        // Clono con slice la lista de order bys según el estado.
-        const order_list = this.order == null ? [] : this.order.slice();
-
-        // Busco la cláusula order_by cuyo campo se corresponda con el nombre de la cabecera, la convierto a otro estado siguiendo un
-        // semáforo: si no existe pasa a ASC, si ASC pasa a DESC, y si DESC se elimina.
-        var index = null;
-        var exists = null;
-        for (let i = 0; i < order_list.length; i++) {
-            if (order_list[i].field_name === header.field_name) {
-                index = i;
-                break;
-            }
-        }
-
-        // Si existe, cambiar el tipo de la cláusula según el flag order_state. También cambiar el estado de dicho flag para visualizar el cambio en la propia cabecera.
-        if (index != null) {
-            exists = order_list[index];
-
-            if (header.order_state === 'up') {
-                exists.order_by_type = OrderByTypes.DESC;
-                header.order_state = 'down';
-            } else {
-                // Elimino del array
-                order_list.splice(index, 1);
-                header.order_state = null;
-            }
-        } else {
-            // Si no existe, añadir a la lista de order_bys una nueva cláusula con ASC
-            order_list.push(new OrderByClause(header.field_name, OrderByTypes.ASC));
-            header.order_state = 'up';
-        }
-
-        // Modifico las cabeceras del controlador también
-        if (this.headers) {
-            for (let i = 0; i < this.headers.length; i++) {
-                if (this.headers[i].field_name === header.field_name) {
-                    this.headers[i] = header;
-                    break;
+    public async countRowsByControllerClauses(): Promise<number> {
+        const req_options: RequestInit = this.getRequestOptionsForViewState(ViewStates.LIST, null, this.joins, this.filters, null, null, null, null);
+        return this.makeRequestToAPI(properties.apiUrl + "/count", req_options).then(
+            (result) => {
+                if (result['success'] === true) {
+                    return result['response_object'] as number;
+                } else {
+                    throw new Error(result['response_object']);
                 }
             }
-        }
-
-        // Reasigno el orden del viewcontroller
-        this.order = order_list;
-
-        // Llamo a fetchdata para rehacer el estado del viewcontroller y de la tabla interior.
-        this.fetchData();
-    }
-
-    /**
-     * Reestablece el orden por defecto.
-     */
-    restartOrder() {
-        // Reestablecer cabeceras
-        // Modifico las cabeceras del controlador también
-        if (this.headers) {
-            for (let i = 0; i < this.headers.length; i++) {
-                this.headers[i].order_state = null;
-            }
-        }
-
-        // Traer datos de nuevo quitando el orden
-        this.order = [];
-        this.fetchData();
-    }
-
-    /**
-    * Convierte un array json a un array de entidades del modelo de datos.
-    * 
-    * @param {json} json_result 
-    * @returns {List} Lista de entidades según el modelo de datos correspondiente a la vista. 
-    */
-    protected convertFromJsonToEntityList(json_result: Array<string>): Array<T> {
-        var result = [];
-
-        // Convertir entidad a entidad.
-        if (json_result !== null && json_result.length > 0) {
-            for (let i = 0; i < json_result.length; i++) {
-                result.push(this.entity_class.fromJSON(json_result[i]));
-            }
-        }
-
-        return result;
+        ).catch((error) => {
+            throw error;
+        });
     }
 
     // SUGGESTION
@@ -577,7 +546,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         }
 
         // Buscar una forma de poder pasar null o nada mejor.
-        const req_options = this.getRequestOptionsForViewState(ViewStates.LIST, fields, null, filters, null, null, target_entity);
+        const req_options = this.getRequestOptionsForViewState(ViewStates.LIST, fields, null, filters, null, null, 0, 25, target_entity);
         return await this.makeRequestToAPI(properties.apiUrl + '/select', req_options, false).then(
             (result) => {
                 // Determinar el resultado
@@ -681,7 +650,6 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         if (error !== undefined && error !== null) {
             // Mostrar aviso de error
             toast.error(error);
-
             return false;
         } else {
             return true;
@@ -720,26 +688,27 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
         }
 
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        return await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptionsForViewState(ViewStates.VALIDATE, null, null, filters, null, null)).then(
-            (result) => {
-                if (result['success'] === true) {
-                    // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                    const count: number = result['response_object'];
+        return await this.makeRequestToAPI(properties.apiUrl + "/count", this.getRequestOptionsForViewState(ViewStates.VALIDATE, null, null, filters,
+            null, null, null, null)).then(
+                (result) => {
+                    if (result['success'] === true) {
+                        // Si count es mayor que cero, es que ya existe un registro con el mismo código
+                        const count: number = result['response_object'];
 
-                    if (count !== undefined && count !== null && count > 0) {
-                        // Avisar al usuario
-                        return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                        if (count !== undefined && count !== null && count > 0) {
+                            // Avisar al usuario
+                            return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                        } else {
+                            return null;
+                        }
                     } else {
-                        return null;
+                        throw new Error(result['response_object']);
                     }
-                } else {
-                    throw new Error(result['response_object']);
                 }
-            }
-        ).catch((error) => {
-            toast.error(error.message);
-            return null;
-        })
+            ).catch((error) => {
+                toast.error(error.message);
+                return null;
+            })
     }
 
     /**

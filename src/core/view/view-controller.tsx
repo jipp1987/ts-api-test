@@ -9,10 +9,14 @@ import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
 import { CoreController, ICoreControllerProps } from './core-controller';
 
+import { OrderByClause, OrderByTypes } from '../utils/dao-utils';
+import DataTableHeader from "./table-header";
+
 import { FormattedMessage } from "react-intl";
 
 import "./../components/styles/buttons.css";
 import BaseEntity from "../model/base_entity";
+import { toast } from 'react-hot-toast';
 
 
 /**
@@ -46,10 +50,6 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
      */
     last_focus_element: string | null;
     /**
-     * Límite de filas en la tabla.
-     */
-    rowLimit: number;
-    /**
      * Clave i18n para título del controlador.
      */
     view_title: string;
@@ -57,6 +57,10 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
      * Lo utilizo porque los componentes de React pueden llegar a montarse varias veces; con esto evito que llame más de una vez a la API durante la carga inicial.
      */
     isAlreadyMounted: boolean;
+    /**
+     * Número de registros en un momento dado de acuerdo con las cláusulas del controlador.
+     */
+    rowNumber: number;
 
     /**
      * Crea una instancia del controlador de vista.
@@ -80,21 +84,12 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
 
         this.isAlreadyMounted = false;
 
+        this.rowNumber = 0;
+
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
-            /**
-             * Lista de datos para mostrar en la tabla.
-             */
             items: [],
-
-            /**
-             * Estado del controlador de vista. Por defecto navegar a la vista de listado.
-             */
             viewState: ViewStates.LIST,
-
-            /**
-             * Lista de paneles modales abiertos en el controlador.
-             */
             modalList: []
         };
     }
@@ -106,7 +101,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         // Traer datos de la API. Utilizo un flag booleano porque a veces esta función se llama un par de veces, es una característica de React.
         // Así evito llamar a la API más veces de las necesarias.
         if (!this.isAlreadyMounted) {
-            this.fetchData();
+            this.goToList();
             this.isAlreadyMounted = true;
         }
     }
@@ -307,9 +302,88 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     /**
      * Vuelve a la vista del listado.
      */
-    goToList(): void {
+    goToList() {
         // Cargar datos
-        this.fetchData(ViewStates.LIST);
+        // Primero hay que contar cuántos registros hay
+        this.countRowsByControllerClauses().then((result) => {
+            this.rowNumber = result;
+        }).then(() => {
+            this.fetchData(ViewStates.LIST);
+        }).catch(
+            (error) => toast.error(error.message)
+        );
+    }
+
+    /**
+     * Añade una cláusula order_by al orden del controlador, o bien modifica una existente; depende del flag de la cabecera pasada como parámetro.
+     * 
+     * @param {HeaderHelper} header 
+     */
+    add_order_by_header(header: DataTableHeader) {
+        // Clono con slice la lista de order bys según el estado.
+        const order_list = this.order == null ? [] : this.order.slice();
+
+        // Busco la cláusula order_by cuyo campo se corresponda con el nombre de la cabecera, la convierto a otro estado siguiendo un
+        // semáforo: si no existe pasa a ASC, si ASC pasa a DESC, y si DESC se elimina.
+        var index = null;
+        var exists = null;
+        for (let i = 0; i < order_list.length; i++) {
+            if (order_list[i].field_name === header.field_name) {
+                index = i;
+                break;
+            }
+        }
+
+        // Si existe, cambiar el tipo de la cláusula según el flag order_state. También cambiar el estado de dicho flag para visualizar el cambio en la propia cabecera.
+        if (index != null) {
+            exists = order_list[index];
+
+            if (header.order_state === 'up') {
+                exists.order_by_type = OrderByTypes.DESC;
+                header.order_state = 'down';
+            } else {
+                // Elimino del array
+                order_list.splice(index, 1);
+                header.order_state = null;
+            }
+        } else {
+            // Si no existe, añadir a la lista de order_bys una nueva cláusula con ASC
+            order_list.push(new OrderByClause(header.field_name, OrderByTypes.ASC));
+            header.order_state = 'up';
+        }
+
+        // Modifico las cabeceras del controlador también
+        if (this.headers) {
+            for (let i = 0; i < this.headers.length; i++) {
+                if (this.headers[i].field_name === header.field_name) {
+                    this.headers[i] = header;
+                    break;
+                }
+            }
+        }
+
+        // Reasigno el orden del viewcontroller
+        this.order = order_list;
+
+        // Llamo a fetchdata para rehacer el estado del viewcontroller y de la tabla interior.
+        this.fetchData();
+    }
+
+    /**
+     * Reestablece el orden por defecto.
+     */
+    restartOrder() {
+        // Reestablecer cabeceras
+        // Modifico las cabeceras del controlador también
+        if (this.headers) {
+            for (let i = 0; i < this.headers.length; i++) {
+                this.headers[i].order_state = null;
+            }
+        }
+
+        // Traer datos de nuevo quitando el orden
+        this.order = [];
+        this.fetchData();
     }
 
     /**
