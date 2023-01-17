@@ -12,7 +12,7 @@ import { FormattedMessage } from "react-intl";
 
 import toast from 'react-hot-toast';
 
-import { properties } from './../../properties';
+import { properties } from '../utils/db-properties';
 
 import "./../components/styles/buttons.css";
 

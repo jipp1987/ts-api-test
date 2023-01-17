@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+import Tooltip from './tooltip';
+
 import { FormattedMessage } from "react-intl";
 import { generateUuid } from '../utils/helper-utils'
-
-import Tooltip from './tooltip';
 
 import './styles/buttons.css';
 
@@ -40,15 +40,19 @@ interface IImageButtonProps {
      */
     disabled?: boolean;
     /**
-     * Texto para el tooltip.
+     * Tooltip. Puede ser un string o un nodo de React, por si fuera una traducción de react-intl.
      */
-    tooltip?: string;
+    btnTooltip?: React.ReactNode | string;
+    /**
+     * Localización del tooltip. Si no se espefifica tooltip, esta propiedad será ignorada.
+     */
+    btnTooltipDirection?: "top" | "bottom" | "left" | "right"; 
 }
 
 /**
  * Botón con imagen.
  */
-export default function ImageButton({ id, title, type, style, className, onClick, disabled, tooltip }: IImageButtonProps) {
+export default function ImageButton({ id, title, type, style, className, onClick, disabled, btnTooltip, btnTooltipDirection }: IImageButtonProps) {
     // Defino habilitado como atributo de estado del componente porque puede habilitarse/desabilitarse durante un rerender
     const [enabled, setEnabled] = useState<boolean>(disabled !== undefined && disabled === true ? false : true);
     const [buttonId] = useState<string>(id === undefined || id === null ? generateUuid() : id);
@@ -63,20 +67,22 @@ export default function ImageButton({ id, title, type, style, className, onClick
     const label = title !== undefined && title !== null ?
         <span className='btn-text'><FormattedMessage id={title} /></span> : null;
 
-    // Tooltip
-    var container_id: string = "btn-container_" + buttonId;
-    const tooltip_component: React.ReactNode | null = tooltip !== undefined && tooltip != null
-        ? <Tooltip parentId={container_id} text={tooltip} /> : null;
+    // Definir el botón.
+    var btn_: React.ReactNode = <div className={enabled ? 'btn-container' : 'btn-container-disabled'}>
+        <button className="custom-button" id={buttonId} type={buttonType} onClick={onClick} style={style} disabled={!enabled}>
+            <span className={'image-button ' + className}></span>
+            {label}
+        </button></div>;
+
+    // Si hay un tooltip, envolver al botón en el mismo.
+    if (btnTooltip !== undefined) {
+        const direction = btnTooltipDirection !== undefined ? btnTooltipDirection : "bottom";
+        btn_ = <Tooltip content={btnTooltip} direction={direction}>{btn_}</Tooltip>
+    }
 
     return (
         <>
-            <div id={container_id} className={enabled ? 'btn-container' : 'btn-container-disabled'}>
-                <button className="custom-button" id={buttonId} type={buttonType} onClick={onClick} style={style} disabled={!enabled}>
-                    <span className={'image-button ' + className}></span>
-                    {label}
-                </button>
-            </div>
-            {tooltip_component}
+            {btn_}
         </>
     );
 }

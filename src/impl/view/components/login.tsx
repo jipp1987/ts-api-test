@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { properties } from "./../../../properties";
+import { properties } from "../../../core/utils/db-properties";
 import { getTimestampInSeconds } from "./../../../core/utils/helper-utils";
 import {
     getRequestOptionsForAPICall, TOKEN_SESSION_ID, TOKEN_REFRESH_SESSION_ID, LAST_TOKEN_TIME_SESSION_ID

@@ -51,4 +51,4 @@ typings/
 .yarn-integrity
 
 # Fichero de recursos
-properties.tsx
+db-properties.tsx

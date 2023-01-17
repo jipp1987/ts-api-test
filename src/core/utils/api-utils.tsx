@@ -1,5 +1,5 @@
 import { getTimestampInSeconds } from "./helper-utils";
-import { properties } from './../../properties';
+import { properties } from './db-properties';
 
 export const TOKEN_SESSION_ID: string = "jwt-token";
 export const TOKEN_REFRESH_SESSION_ID: string = "refresh-jwt-token";

@@ -7,6 +7,7 @@
     "i18n_save_button": "Guardar",
     "i18n_find_button": "Buscar",
     "i18n_edit_button": "Editar",
+    "i18n_select_button": "Seleccionar",
 
     "i18n_error_codeAlreadyExists": "Ya existe un registro con el código {0}.",
     "i18n_error_stringIsNotNumber": "El texto introducido no es numérico.",

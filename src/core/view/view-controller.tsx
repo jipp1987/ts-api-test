@@ -297,7 +297,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     */
     renderToolbarList(): React.ReactNode {
         return (
-            <div className='toolbar'>
+            <div key={this.id + "_list_toolbar"} className='toolbar'>
                 <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
                 <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
             </div>
@@ -325,8 +325,9 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
 
         // Le paso una key generada aleatoriamente porque este componente se va a repintar dentro de la misma vista, así fuerzo a que todos los hijos
         // se repinten completamente. Si no lo hago, los botones podrían no funcionar bien a pesar de estar aparentemente bien renderizados.
+        const toolbar_id = this.isInDetailMode() ? this.id + "_detail_toolbar" : this.id + "_edit_toolbar";
         return (
-            <div className='toolbar' key={generateUuid()}>
+            <div className='toolbar' key={toolbar_id}>
                 <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
                 {editSaveButton}
             </div>
@@ -354,7 +355,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         }
 
         return (
-            <div>
+            <div key={this.id + "_table_view"}>
                 <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
                 {toolbar}
@@ -401,7 +402,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         const toolbar = this.renderToolbarEditDetail();
 
         return (
-            <div>
+            <div key={this.id + "_edit_view"}>
                 <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
                 <form method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
