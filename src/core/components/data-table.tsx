@@ -105,7 +105,7 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
         if (this.props.selectAction !== undefined) {
             const action_select = this.props.selectAction;
             select_button = <ImageButton className='select-button' onClick={() => action_select(d)}  
-                btnTooltip={<FormattedMessage id='i18n_select_button' />} btnTooltipDirection="right" />;
+                btnTooltip={<FormattedMessage id='i18n_select_button' defaultMessage="Select" />} btnTooltipDirection="right" />;
         }
 
         // Columna de acciones
@@ -113,9 +113,9 @@ export default class DataTable extends React.Component<IDataTableProps, IDataTab
             <div className="action-column-div">
                 {select_button}
                 <ImageButton className='edit-button' onClick={() => this.props.editAction(d)} 
-                    btnTooltip={<FormattedMessage id='i18n_edit_button' />} />
+                    btnTooltip={<FormattedMessage id='i18n_edit_button' defaultMessage="Edit" />} />
                 <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} 
-                    btnTooltip={<FormattedMessage id='i18n_common_delete' />} btnTooltipDirection="right"  />
+                    btnTooltip={<FormattedMessage id='i18n_common_delete' defaultMessage="Delete" />} btnTooltipDirection="right"  />
             </div>
         </td>;
 
