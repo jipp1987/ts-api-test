@@ -397,58 +397,12 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     }
 
     /**
-     * Muestra la primera página de la tabla.
-     */
-    goToFirstPage = () => {
-        this.rowOffset = 0;
-        this.fetchData();
-    }
-
-    /**
-     * Muestra la página anterior de la tabla.
-     */
-    goToPreviousPage = () => {
-        this.rowOffset = this.rowOffset - this.rowLimit;
-        
-        if (this.rowOffset < 0) {
-            this.rowOffset = 0;
-        }
-
-        this.fetchData();
-    }
-
-    /**
-     * Muestra la siguiente página de la tabla.
-     */
-    goToNextPage = () => {
-        // El siguiente offset será el anterior más el límite de filas
-        this.rowOffset = this.rowOffset + this.rowLimit;
-
-        // Si el offset supera el número total de filas, he llegado a la última página
-        if (this.rowOffset > this.rowNumber) {
-            this.goToLastPage();
-        } else {
-            this.fetchData();
-        }
-    }
-
-    /**
-     * Muestra la última página de la tabla.
-     */
-    goToLastPage = () => {
-        // En la última página, el offset será el número de páginas menos uno multiplicado por el límite de filas
-        // Si tengo cinco registros mostrando dos registros por página, tendré tres páginas (número de filas totales entre límite de filas redondeado hacia arriba)
-        // El offset de la última página será el cuatro: (página 3 -1) * 2
-        this.rowOffset = (this.calculateNumberOfPages() - 1) * this.rowLimit;
-        this.fetchData();
-    }
-
-    /**
      * Acción de cambio de página.
      * 
      * @param newPage 
      */
     changePage = (newPage: number) => {
+        // Modificar offset y buscar nuevos datos.
         this.rowOffset = (newPage - 1) * this.rowLimit;
         this.fetchData(); 
     }
@@ -506,9 +460,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
                     deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
 
-                <LazyPaginator firstPageAction={this.goToFirstPage} previousPageAction={this.goToPreviousPage}
-                    nextPageAction={this.goToNextPage} lastPageAction={this.goToLastPage} pageNumber={this.calculateNumberOfPages()}
-                    pageChangeAction={(newPage: number) => this.changePage(newPage)} />
+                <LazyPaginator pagesNumber={this.calculateNumberOfPages()} pageChangeAction={(newPage: number) => this.changePage(newPage)} />
             </div>
         );
     }

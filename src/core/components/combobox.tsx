@@ -7,6 +7,7 @@ import './styles/inputs.css';
 interface IComboBoxProps {
     id?: string;
     values: Array<ComboBoxValue>;
+    defaultValue?: ComboBoxValue | null;
     label?: string | React.ReactNode;
     isRequired?: boolean;
     onChangeAction?(param: any): any;
@@ -20,13 +21,18 @@ interface IComboBoxProps {
 export default function ComboBox(props: IComboBoxProps) {
 
     const [values, setValues] = useState<Array<ComboBoxValue>>(props.values);
-    const [selectedValue, setSelectedValue] = useState<any | null>(props.values[0]);
+    const [selectedValue, setSelectedValue] = useState<any | null>(props.defaultValue !== undefined ? props.defaultValue : 
+        (props.values !== null && props.values.length > 0 ? props.values[0].value : null));
     const [id] = useState<string>(props.id !== undefined && props.id !== null ? props.id : generateUuid());
 
     // Si cambian los valores, debe repintarse el componente
     useEffect(() => {
         setValues(props.values);
     }, [props.values]);
+
+    useEffect(() => {
+        setSelectedValue(props.defaultValue !== undefined && props.defaultValue !== null ? props.defaultValue.value : null);
+    }, [props.defaultValue]);
 
     /**
      * Función de cambio de valor.
