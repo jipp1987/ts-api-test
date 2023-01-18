@@ -1,4 +1,3 @@
-import React from 'react';
 import { usePromiseTracker } from "react-promise-tracker";
 import { FormattedMessage } from "react-intl";
 
@@ -25,7 +24,7 @@ export default function LoadingIndicator(props: ILoadingIndicatorProps) {
 
     if (promiseInProgress) {
         return <Modal title={<FormattedMessage id="i18n_common_loading" />}
-            parentContainer={props.parentContainer}>
+            parentContainer={props.parentContainer} width="250px">
             <div
                 style={{
                     width: "100%",

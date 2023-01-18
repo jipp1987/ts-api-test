@@ -1,0 +1,10 @@
+.paginator-wrapping {
+    display: flex;
+    margin-top: 10px;
+    justify-content: center;
+    width:100%;
+}
+
+.paginator-wrapping > div:not(:first-child) {
+    margin-left: 5px;
+}

@@ -108,3 +108,19 @@
 .edit-button {
     background: url("../../resources/edit.png") no-repeat;
 }
+
+.first-button {
+    background: url("../../resources/first.png") no-repeat;
+}
+
+.last-button {
+    background: url("../../resources/last.png") no-repeat;
+}
+
+.previous-button {
+    background: url("../../resources/previous.png") no-repeat;
+}
+
+.next-button {
+    background: url("../../resources/next.png") no-repeat;
+}

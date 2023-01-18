@@ -4,6 +4,7 @@ import { generateUuid } from '../utils/helper-utils'
 import { ViewStates, ModalHelper } from "../utils/helper-utils";
 
 import DataTable from '../components/data-table';
+import Paginator from '../components/paginator';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
@@ -70,7 +71,6 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     constructor(props: ICoreControllerProps) {
         super(props);
         this.dataTable = React.createRef();
-        this.rowLimit = 50;
         this.id_field_name = 'id';
         this.view_title = '';
         this.table_name = '';
@@ -386,6 +386,64 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         this.fetchData();
     }
 
+    // PAGINACIÓN
+    /**
+     * Devuelve el número de páginas disponibles de acuerdo con el número de registros y el límite de los mismos por página.
+     * 
+     * @returns number
+     */
+    protected calculateNumberOfPages(): number {
+        return Math.ceil(this.rowNumber / this.rowLimit);
+    }
+
+    /**
+     * Muestra la primera página de la tabla.
+     */
+    goToFirstPage = () => {
+        this.rowOffset = 0;
+        this.fetchData();
+    }
+
+    /**
+     * Muestra la página anterior de la tabla.
+     */
+    goToPreviousPage = () => {
+        this.rowOffset = this.rowOffset - this.rowLimit;
+        
+        if (this.rowOffset < 0) {
+            this.rowOffset = 0;
+        }
+
+        this.fetchData();
+    }
+
+    /**
+     * Muestra la siguiente página de la tabla.
+     */
+    goToNextPage = () => {
+        // El siguiente offset será el anterior más el límite de filas
+        this.rowOffset = this.rowOffset + this.rowLimit;
+
+        // Si el offset supera el número total de filas, he llegado a la última página
+        if (this.rowOffset > this.rowNumber) {
+            this.goToLastPage();
+        } else {
+            this.fetchData();
+        }
+    }
+
+    /**
+     * Muestra la última página de la tabla.
+     */
+    goToLastPage = () => {
+        // En la última página, el offset será el número de páginas menos uno multiplicado por el límite de filas
+        // Si tengo cinco registros mostrando dos registros por página, tendré tres páginas (número de filas totales entre límite de filas redondeado hacia arriba)
+        // El offset de la última página será el cuatro: (página 3 -1) * 2
+        this.rowOffset = (this.calculateNumberOfPages() - 1) * this.rowLimit;
+        this.fetchData();
+    }
+
+    // RENDERIZADO DEL COMPONENTE
     /**
     * Método de renderizado de toolbar de la tabla.
     * 
@@ -437,6 +495,9 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
                 <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
                     deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
+
+                <Paginator firstPageAction={this.goToFirstPage} previousPageAction={this.goToPreviousPage}
+                    nextPageAction={this.goToNextPage} lastPageAction={this.goToLastPage} />
             </div>
         );
     }
