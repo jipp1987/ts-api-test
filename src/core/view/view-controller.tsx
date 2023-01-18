@@ -4,7 +4,7 @@ import { generateUuid } from '../utils/helper-utils'
 import { ViewStates, ModalHelper } from "../utils/helper-utils";
 
 import DataTable from '../components/data-table';
-import Paginator from '../components/paginator';
+import { LazyPaginator } from '../components/paginator';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
@@ -443,6 +443,16 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         this.fetchData();
     }
 
+    /**
+     * Acción de cambio de página.
+     * 
+     * @param newPage 
+     */
+    changePage = (newPage: number) => {
+        this.rowOffset = (newPage - 1) * this.rowLimit;
+        this.fetchData(); 
+    }
+
     // RENDERIZADO DEL COMPONENTE
     /**
     * Método de renderizado de toolbar de la tabla.
@@ -496,8 +506,9 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
                     deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
 
-                <Paginator firstPageAction={this.goToFirstPage} previousPageAction={this.goToPreviousPage}
-                    nextPageAction={this.goToNextPage} lastPageAction={this.goToLastPage} />
+                <LazyPaginator firstPageAction={this.goToFirstPage} previousPageAction={this.goToPreviousPage}
+                    nextPageAction={this.goToNextPage} lastPageAction={this.goToLastPage} pageNumber={this.calculateNumberOfPages()}
+                    pageChangeAction={(newPage: number) => this.changePage(newPage)} />
             </div>
         );
     }

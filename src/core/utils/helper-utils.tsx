@@ -196,3 +196,19 @@ export class ModalHelper {
     }
 
 }
+
+
+/**
+ * Clase para modelado de valores de combobox.
+ */
+export class ComboBoxValue {
+
+    value: any;
+    label: string | number;
+
+    constructor(value: any, label: string | number) {
+        this.value = value;
+        this.label = label;
+    }
+
+}
