@@ -24,7 +24,7 @@ export interface ICoreControllerProps {
     select_action?(params?: any): any;
 }
 
-interface ICoreControllerState {
+export interface ICoreControllerState {
     /**
      * Estado de la vista.
      */
@@ -42,7 +42,7 @@ interface ICoreControllerState {
 /**
  * @class Core de controladores de vista.
  */
-export abstract class CoreController<T extends BaseEntity> extends React.Component<ICoreControllerProps, ICoreControllerState> {
+export abstract class CoreController<T extends BaseEntity, I extends ICoreControllerState> extends React.Component<ICoreControllerProps, I> {
 
     // ATRIBUTOS DE CLASE
     /**

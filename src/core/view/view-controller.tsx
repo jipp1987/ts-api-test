@@ -8,7 +8,7 @@ import { LazyPaginator } from '../components/paginator';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
-import { CoreController, ICoreControllerProps } from './core-controller';
+import { CoreController, ICoreControllerProps, ICoreControllerState } from './core-controller';
 
 import { OrderByClause, OrderByTypes } from '../utils/dao-utils';
 import DataTableHeader from "./table-header";
@@ -20,10 +20,12 @@ import BaseEntity from "../model/base_entity";
 import { toast } from 'react-hot-toast';
 
 
+
+
 /**
  * @class Controlador de vista.
  */
-export default abstract class ViewController<T extends BaseEntity> extends CoreController<T> {
+export default abstract class ViewController<T extends BaseEntity, I extends ICoreControllerState> extends CoreController<T, I> {
 
     // DEFINICIÓN DE CAMPOS
     /**
@@ -90,13 +92,6 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
 
         this.rowNumber = 0;
         this.pageNumber = 1;
-
-        // Establecer estado para atributos de lectura/escritura.
-        this.state = {
-            items: [],
-            viewState: ViewStates.LIST,
-            modalList: []
-        };
     }
 
     /**

@@ -2,15 +2,23 @@ import DataTableHeader from '../../core/view/table-header';
 import InputText from '../../core/components/input-text';
 import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
-import { ICoreControllerProps } from '../../core/view/core-controller';
+import { ICoreControllerProps, ICoreControllerState  } from '../../core/view/core-controller';
 import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
-import { ViewValidators } from '../../core/utils/helper-utils';
+import { ViewValidators, ViewStates } from '../../core/utils/helper-utils';
+
+
+/**
+ * Interfaz de estado para poder añadir estados propios al controlador a mayores de los de CoreController.
+ */
+interface ITipoClienteViewState extends ICoreControllerState {
+    
+}
 
 /**
  * @class Controlador de mantenimiento de clientes.
  */
-export default class TipoClienteView extends ViewController<TipoCliente> {
+export default class TipoClienteView extends ViewController<TipoCliente, ITipoClienteViewState> {
 
     /**
      * Crea una instancia del controlador de vista.
@@ -69,6 +77,13 @@ export default class TipoClienteView extends ViewController<TipoCliente> {
             new DataTableHeader(4, 'usuario_creacion.username', 'i18n_common_usuario_creacion', '100px', null),
             new DataTableHeader(5, 'usuario_ult_mod.username', 'i18n_common_usuario_ult_mod', '100px', null)
         ];
+
+        // Establecer estado para atributos de lectura/escritura.
+        this.state = {
+            items: [],
+            viewState: ViewStates.LIST,
+            modalList: [],
+        };
     }
 
     /**
