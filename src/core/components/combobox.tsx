@@ -8,14 +8,13 @@ interface IComboBoxProps {
     id?: string;
     values: Array<ComboBoxValue>;
     /**
-     * Valor por defecto. Si es undefined, se utilizará el primer elemento de values.
+     * Esto es útil principalmente cuando desde otro componente queremos modificar el valor y por tanto rerenderizar el combobox.
      */
-    defaultValue?: ComboBoxValue | null;
+    defaultValue?: ComboBoxValue;
     label?: string | React.ReactNode;
     isRequired?: boolean;
     /**
      * Acción posterior al propio evento de cambio del combobox.
-     * @param param 
      */
     onChangeAction?(param: any): void;
 }
@@ -28,8 +27,8 @@ interface IComboBoxProps {
 export default function ComboBox(props: IComboBoxProps) {
 
     const [values, setValues] = useState<Array<ComboBoxValue>>(props.values);
-    const [selectedValue, setSelectedValue] = useState<any>(props.defaultValue !== undefined ? props.defaultValue : 
-        (props.values !== null && props.values.length > 0 ? props.values[0].value : ""));
+    const [selectedValue, setSelectedValue] = useState<any>(props.defaultValue && props.defaultValue !== null !== undefined ? props.defaultValue : 
+        (props.values !== null && props.values.length > 0 ? props.values[0].value : undefined));
     const [id] = useState<string>(props.id !== undefined && props.id !== null ? props.id : generateUuid());
 
     // Si cambian los valores, debe repintarse el componente
@@ -37,8 +36,11 @@ export default function ComboBox(props: IComboBoxProps) {
         setValues(props.values);
     }, [props.values]);
 
+    // Por si se quiere cambiar el valor de este componente desde otro sitio.
     useEffect(() => {
-        setSelectedValue(props.defaultValue !== undefined && props.defaultValue !== null ? props.defaultValue.value : null);
+        if (props.defaultValue !== undefined && props.defaultValue !== null) {
+            setSelectedValue(props.defaultValue.value);
+        }
     }, [props.defaultValue]);
 
     /**

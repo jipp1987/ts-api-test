@@ -62,6 +62,10 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
      * Número de registros en un momento dado de acuerdo con las cláusulas del controlador.
      */
     rowNumber: number;
+    /**
+     * Página actual en la que se encuentra la tabla.
+     */
+    pageNumber: number;
 
     /**
      * Crea una instancia del controlador de vista.
@@ -85,6 +89,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         this.isAlreadyMounted = false;
 
         this.rowNumber = 0;
+        this.pageNumber = 1;
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
@@ -404,6 +409,7 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
     changePage = (newPage: number) => {
         // Modificar offset y buscar nuevos datos.
         this.rowOffset = (newPage - 1) * this.rowLimit;
+        this.pageNumber = newPage;
         this.fetchData(); 
     }
 
@@ -460,7 +466,8 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
                     deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
 
-                <LazyPaginator pagesNumber={this.calculateNumberOfPages()} pageChangeAction={(newPage: number) => this.changePage(newPage)} />
+                <LazyPaginator pagesNumber={this.calculateNumberOfPages()} currentPage={this.pageNumber} 
+                    pageChangeAction={(newPage: number) => this.changePage(newPage)} />
             </div>
         );
     }

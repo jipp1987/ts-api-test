@@ -20,6 +20,10 @@ interface IPaginatorProps {
      * Número de páginas.
      */
     pagesNumber: number;
+    /**
+     * Página actual pasada desde el controlador.
+     */
+    currentPage: number;
 }
 
 /**
@@ -30,12 +34,16 @@ interface IPaginatorProps {
  */
 export function LazyPaginator(props: IPaginatorProps) {
     const [pagesNumber, setPagesNumber] = useState<number>(props.pagesNumber);
-    const [selectedPage, setSelectedPage] = useState<number>(1);
+    const [selectedPage, setSelectedPage] = useState<number>(props.currentPage);
 
     // Si cambian los valores, debe repintarse el componente
     useEffect(() => {
         setPagesNumber(props.pagesNumber);
     }, [props.pagesNumber]);
+
+    useEffect(() => {
+        setSelectedPage(props.currentPage);
+    }, [props.currentPage]);
 
     // Valores para el combobox
     const combo_values: Array<ComboBoxValue> = [];
@@ -56,10 +64,12 @@ export function LazyPaginator(props: IPaginatorProps) {
                 newPage = 1;
                 break;
             case "previous":
-                newPage = selectedPage > 1 ? selectedPage - 1 : 1;
+                // Esto es curioso: a pesar de estar tipado como número, puede ser que venga como string
+                // Por si acaso lo parseo, sino va a intentar ir a una página incorrecta o que directamente no existe
+                newPage = selectedPage > 1 ? parseInt(selectedPage.toString()) - 1 : 1;
                 break;
             case "next":
-                newPage = selectedPage < pagesNumber ? selectedPage + 1 : pagesNumber;
+                newPage = selectedPage < pagesNumber ? parseInt(selectedPage.toString()) + 1 : pagesNumber;
                 break;
             case "last":
             default:
@@ -76,6 +86,8 @@ export function LazyPaginator(props: IPaginatorProps) {
         props.pageChangeAction(newPage);
     }
 
+    const defaultValue: ComboBoxValue = new ComboBoxValue(selectedPage, selectedPage);
+
     return (
         <div className="paginator-wrapping">
 
@@ -83,8 +95,8 @@ export function LazyPaginator(props: IPaginatorProps) {
 
             <ImageButton className="previous-button" onClick={() => changePage("previous")} />
 
-            <ComboBox values={combo_values} defaultValue={new ComboBoxValue(selectedPage, selectedPage)} 
-                onChangeAction={(newPage: number) => { setSelectedPage(newPage); props.pageChangeAction(newPage); }} />
+            <ComboBox values={combo_values} defaultValue={defaultValue} 
+                onChangeAction={(newPage: number) => { props.pageChangeAction(newPage); }} />
 
             <ImageButton className="next-button" onClick={() => changePage("next")} />
 
