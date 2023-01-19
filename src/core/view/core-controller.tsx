@@ -113,7 +113,7 @@ export abstract class CoreController<T extends BaseEntity> extends React.Compone
     constructor(props: ICoreControllerProps) {
         super(props);
 
-        this.rowLimit = 2;
+        this.rowLimit = 50;
         this.rowOffset = 0;
         this.fields = null;
         this.table_name = "";

@@ -8,6 +8,7 @@
     "i18n_find_button": "Find",
     "i18n_edit_button": "Edit",
     "i18n_select_button": "Select",
+    "i18n_change_row_number": "Change row number per page",
 
     "i18n_error_codeAlreadyExists": "A record with the code {0} already exists.",
     "i18n_error_stringIsNotNumber": "The text entered is not numeric.",

@@ -8,3 +8,10 @@
 .paginator-wrapping > div:not(:first-child) {
     margin-left: 5px;
 }
+
+.my-input {
+    padding: 0.25em 0.5em;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    text-align: right;
+}

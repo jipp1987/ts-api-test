@@ -410,7 +410,21 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
         // Modificar offset y buscar nuevos datos.
         this.rowOffset = (newPage - 1) * this.rowLimit;
         this.pageNumber = newPage;
-        this.fetchData(); 
+        this.fetchData();
+    }
+
+    /**
+     * Acción de modificación de límite de filas.
+     * 
+     * @param newRowLimit 
+     */
+    changeRowLimit = (newRowLimit: number) => {
+        if (newRowLimit !== undefined && newRowLimit !== null && newRowLimit !== this.rowLimit) {
+            this.rowLimit = newRowLimit;
+            this.rowOffset = 0;
+            this.pageNumber = 1;
+            this.fetchData();
+        }
     }
 
     // RENDERIZADO DEL COMPONENTE
@@ -466,8 +480,9 @@ export default abstract class ViewController<T extends BaseEntity> extends CoreC
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
                     deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
 
-                <LazyPaginator pagesNumber={this.calculateNumberOfPages()} currentPage={this.pageNumber} 
-                    pageChangeAction={(newPage: number) => this.changePage(newPage)} />
+                <LazyPaginator pagesNumber={this.calculateNumberOfPages()} currentPage={this.pageNumber}
+                    pageChangeAction={(newPage: number) => this.changePage(newPage)} rowNumberPerPage={this.rowLimit}
+                    changeRowNumberAction={(newRowLimit: number) => this.changeRowLimit(newRowLimit)} />
             </div>
         );
     }
