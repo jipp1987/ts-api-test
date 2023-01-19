@@ -2,15 +2,22 @@ import React, { useState, useEffect } from 'react';
 
 import { generateUuid, ComboBoxValue } from '../utils/helper-utils'
 
-import './styles/inputs.css';
+import './styles/combobox.css';
 
 interface IComboBoxProps {
     id?: string;
     values: Array<ComboBoxValue>;
+    /**
+     * Valor por defecto. Si es undefined, se utilizará el primer elemento de values.
+     */
     defaultValue?: ComboBoxValue | null;
     label?: string | React.ReactNode;
     isRequired?: boolean;
-    onChangeAction?(param: any): any;
+    /**
+     * Acción posterior al propio evento de cambio del combobox.
+     * @param param 
+     */
+    onChangeAction?(param: any): void;
 }
 
 /**
@@ -21,8 +28,8 @@ interface IComboBoxProps {
 export default function ComboBox(props: IComboBoxProps) {
 
     const [values, setValues] = useState<Array<ComboBoxValue>>(props.values);
-    const [selectedValue, setSelectedValue] = useState<any | null>(props.defaultValue !== undefined ? props.defaultValue : 
-        (props.values !== null && props.values.length > 0 ? props.values[0].value : null));
+    const [selectedValue, setSelectedValue] = useState<any>(props.defaultValue !== undefined ? props.defaultValue : 
+        (props.values !== null && props.values.length > 0 ? props.values[0].value : ""));
     const [id] = useState<string>(props.id !== undefined && props.id !== null ? props.id : generateUuid());
 
     // Si cambian los valores, debe repintarse el componente
@@ -73,7 +80,7 @@ export default function ComboBox(props: IComboBoxProps) {
     const requiredLabel = renderRequiredLabel(required);
 
     return (
-        <div className="input-panel">
+        <div className="combo-panel">
 
             {combo_label}
 

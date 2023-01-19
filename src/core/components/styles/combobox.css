@@ -1,0 +1,15 @@
+.combo-panel {
+    float: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.combo-panel > select {
+    margin-left: 3px;
+}
+
+.combo-label {
+    margin-bottom: 3px;
+    font-size: 13px !important;
+    font-weight: bold;
+}

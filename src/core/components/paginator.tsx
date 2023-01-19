@@ -76,8 +76,6 @@ export function LazyPaginator(props: IPaginatorProps) {
         props.pageChangeAction(newPage);
     }
 
-    const defaultValue: ComboBoxValue = new ComboBoxValue(selectedPage, selectedPage);
-
     return (
         <div className="paginator-wrapping">
 
@@ -85,7 +83,8 @@ export function LazyPaginator(props: IPaginatorProps) {
 
             <ImageButton className="previous-button" onClick={() => changePage("previous")} />
 
-            <ComboBox values={combo_values} defaultValue={defaultValue} />
+            <ComboBox values={combo_values} defaultValue={new ComboBoxValue(selectedPage, selectedPage)} 
+                onChangeAction={(newPage: number) => { setSelectedPage(newPage); props.pageChangeAction(newPage); }} />
 
             <ImageButton className="next-button" onClick={() => changePage("next")} />
 

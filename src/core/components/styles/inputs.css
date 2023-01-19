@@ -4,8 +4,7 @@
     float: left;
     display: flex;
     flex-direction: column;
-    /* Un poco de mager hacia la derecha para separarlo del siguiente elemento en el formulario. */
-    margin-right: 20px;
+    margin: 5px 15px 15px 5px;
 }
 
 /* Separar un poco la alineación entre el label y el input, así se visualiza mejor. */
