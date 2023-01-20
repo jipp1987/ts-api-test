@@ -83,6 +83,7 @@ export default class UsuarioView extends ViewController<Usuario, IUsuarioViewSta
             id={this.id + "_password"}
             entity={this.selectedItem}
             valueName="password"
+            isPassword={true}
             label={<FormattedMessage id="i18n_usuarios_password" />}
             maxLength={60}
             isEditing={!isInDetailMode}
@@ -90,16 +91,26 @@ export default class UsuarioView extends ViewController<Usuario, IUsuarioViewSta
 
         return (
             <div>
-                <InputText
-                    id={this.id + "_username"}
-                    entity={this.selectedItem}
-                    valueName="username"
-                    label={<FormattedMessage id="i18n_usuarios_username" />}
-                    maxLength={50}
-                    isEditing={!isInDetailMode}
-                    isRequired={true} />
+                <div style={{ padding: "3px", backgroundColor: 'white', float: "left" }}>
 
-                {passwordField}
+                    <fieldset>
+                        
+                        <legend style={{ fontWeight: "bold", marginBottom: "3px" }}><FormattedMessage id="i18n_mainInfo_title" /></legend>
+                        
+                        <InputText
+                            id={this.id + "_username"}
+                            entity={this.selectedItem}
+                            valueName="username"
+                            label={<FormattedMessage id="i18n_usuarios_username" />}
+                            maxLength={50}
+                            isEditing={!isInDetailMode}
+                            isRequired={true} />
+
+                        {passwordField}
+                    </fieldset>
+
+                </div>
+
             </div>
         );
     }

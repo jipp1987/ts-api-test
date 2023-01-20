@@ -21,6 +21,7 @@ interface IInputTextProps {
     minLength?: number;
     isInteger?: boolean;
     isFloat?: boolean;
+    isPassword?: boolean;
 
     /**
      * Campo en estado de edición.
@@ -184,7 +185,7 @@ export default function InputText(props: IInputTextProps) {
                 <input
                     id={id}
                     disabled={!isEditing ? true : false}
-                    type="text"
+                    type={props.isPassword !== undefined && props.isPassword ? "password" : "text"}
                     className="my-input"
                     onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                     onChange={(e) => handleChange(e)}
@@ -193,7 +194,7 @@ export default function InputText(props: IInputTextProps) {
                     maxLength={maxLength}
                     minLength={minLength}
                     value={value}
-                    style={isFloat || isInteger ? { textAlign: 'right', float: 'left' } : { float: 'left' }}
+                    style={isFloat || isInteger ? { textAlign: 'right', float: 'left' } : { float: 'left', textAlign: "left" }}
                     required={isRequired ? true : false} />
 
                 {requiredLabel}

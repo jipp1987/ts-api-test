@@ -2,7 +2,7 @@ import DataTableHeader from '../../core/view/table-header';
 import InputText from '../../core/components/input-text';
 import { FieldClause, JoinClause, JoinTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
-import { ICoreControllerProps, ICoreControllerState  } from '../../core/view/core-controller';
+import { ICoreControllerProps, ICoreControllerState } from '../../core/view/core-controller';
 import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
 import { ViewValidators, ViewStates } from '../../core/utils/helper-utils';
@@ -12,7 +12,7 @@ import { ViewValidators, ViewStates } from '../../core/utils/helper-utils';
  * Interfaz de estado para poder añadir estados propios al controlador a mayores de los de CoreController.
  */
 interface ITipoClienteViewState extends ICoreControllerState {
-    
+
 }
 
 /**
@@ -96,24 +96,32 @@ export default class TipoClienteView extends ViewController<TipoCliente, ITipoCl
     renderDetailEditForm(isInDetailMode: boolean = false) {
         return (
             <div>
-                <InputText
-                    id={this.id + "_codigo"}
-                    entity={this.selectedItem}
-                    valueName="codigo"
-                    label={<FormattedMessage id="i18n_common_code" />}
-                    maxLength={4}
-                    isEditing={!isInDetailMode}
-                    isRequired={true}
-                    validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
+                <div style={{ padding: "3px", backgroundColor: 'white', float: "left" }}>
 
-                <InputText
-                    id={this.id + "_descripcion"}
-                    entity={this.selectedItem}
-                    valueName="descripcion"
-                    label={<FormattedMessage id="i18n_common_description" />}
-                    maxLength={50}
-                    isEditing={!isInDetailMode}
-                    isRequired={true} />
+                    <fieldset>
+                        
+                        <legend style={{ fontWeight: "bold", marginBottom: "3px" }}><FormattedMessage id="i18n_mainInfo_title" /></legend>
+
+                        <InputText
+                            id={this.id + "_codigo"}
+                            entity={this.selectedItem}
+                            valueName="codigo"
+                            label={<FormattedMessage id="i18n_common_code" />}
+                            maxLength={4}
+                            isEditing={!isInDetailMode}
+                            isRequired={true}
+                            validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
+
+                        <InputText
+                            id={this.id + "_descripcion"}
+                            entity={this.selectedItem}
+                            valueName="descripcion"
+                            label={<FormattedMessage id="i18n_common_description" />}
+                            maxLength={50}
+                            isEditing={!isInDetailMode}
+                            isRequired={true} />
+                    </fieldset>
+                </div>
             </div>
         );
     }

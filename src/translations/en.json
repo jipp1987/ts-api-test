@@ -1,6 +1,9 @@
 {
     "i18n_menu_title": "Menu",
 
+    "i18n_mainInfo_title": "General information",
+    "i18n_otherData_title": "Other data",
+
     "i18n_reset_order_button": "Reset order",
     "i18n_add_button": "Add",
     "i18n_back_button": "Back",

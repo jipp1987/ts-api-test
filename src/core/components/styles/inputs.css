@@ -23,6 +23,7 @@
     padding: 0.25em 0.5em;
     background-color: #fff;
     border: 1px solid #ccc;
+    text-align: left;
 }
 
 .suggestion-box {
