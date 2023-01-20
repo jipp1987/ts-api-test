@@ -12,7 +12,6 @@ import { FormattedMessage } from "react-intl";
 import InputText from './../../core/components/input-text';
 import SuggestionBox from './../../core/components/suggestion-box';
 
-
 /**
  * Interfaz de estado para poder añadir estados propios al controlador a mayores de los de CoreController.
  */
@@ -143,75 +142,71 @@ export default class ClienteView extends ViewController<Cliente, IClienteViewSta
         if (this.selectedItem !== null) {
             return (
                 <div>
-                    <div style={{ padding: "3px", backgroundColor: 'white', float: "left" }}>
 
-                        <fieldset>
-                            <legend style={{ fontWeight: "bold", marginBottom: "3px" }}><FormattedMessage id="i18n_mainInfo_title" /></legend>
+                    <fieldset style={{ float: "left" }}>
+                        <legend className='form-card-legend'><FormattedMessage id="i18n_mainInfo_title" /></legend>
 
-                            <InputText
-                                id={this.id + "_codigo"}
-                                entity={this.selectedItem}
-                                valueName="codigo"
-                                label={<FormattedMessage id="i18n_common_code" />}
-                                maxLength={10}
-                                isEditing={!isInDetailMode}
-                                isRequired={true}
-                                validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
+                        <InputText
+                            id={this.id + "_codigo"}
+                            entity={this.selectedItem}
+                            valueName="codigo"
+                            label={<FormattedMessage id="i18n_common_code" />}
+                            maxLength={10}
+                            isEditing={!isInDetailMode}
+                            isRequired={true}
+                            validation={() => this.validateField(this.selectedItem, "codigo", [ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR])} />
 
-                            <InputText
-                                id={this.id + "_nombre"}
-                                entity={this.selectedItem}
-                                valueName="nombre"
-                                label={<FormattedMessage id="i18n_common_first_name" />}
-                                maxLength={50}
-                                isEditing={!isInDetailMode}
-                                isRequired={true} />
+                        <InputText
+                            id={this.id + "_nombre"}
+                            entity={this.selectedItem}
+                            valueName="nombre"
+                            label={<FormattedMessage id="i18n_common_first_name" />}
+                            maxLength={30}
+                            isEditing={!isInDetailMode}
+                            isRequired={true} />
 
-                            <InputText
-                                id={this.id + "_apellidos"}
-                                entity={this.selectedItem}
-                                valueName="apellidos"
-                                label={<FormattedMessage id="i18n_common_last_name" />}
-                                maxLength={80}
-                                isEditing={!isInDetailMode}
-                                isRequired={false} />
+                        <InputText
+                            id={this.id + "_apellidos"}
+                            entity={this.selectedItem}
+                            valueName="apellidos"
+                            label={<FormattedMessage id="i18n_common_last_name" />}
+                            maxLength={40}
+                            isEditing={!isInDetailMode}
+                            isRequired={false} />
 
-                        </fieldset>
-
-                    </div>
+                    </fieldset>
 
 
-                    <div style={{ padding: "3px", marginTop: "8px", backgroundColor: 'white', float: "left" }}>
 
-                        <fieldset>
-                            <legend style={{ fontWeight: "bold", marginBottom: "3px" }}><FormattedMessage id="i18n_otherData_title" /></legend>
+                    <fieldset style={{ float: "left" }}>
+                        <legend className='form-card-legend'><FormattedMessage id="i18n_otherData_title" /></legend>
 
-                            <InputText
-                                id={this.id + "_saldo"}
-                                entity={this.selectedItem}
-                                valueName="saldo"
-                                label={<FormattedMessage id="i18n_clientes_saldo" />}
-                                maxLength={10}
-                                size={15}
-                                isFloat={true}
-                                isEditing={!isInDetailMode}
-                                isRequired={true} />
+                        <InputText
+                            id={this.id + "_saldo"}
+                            entity={this.selectedItem}
+                            valueName="saldo"
+                            label={<FormattedMessage id="i18n_clientes_saldo" />}
+                            maxLength={10}
+                            size={15}
+                            isFloat={true}
+                            isEditing={!isInDetailMode}
+                            isRequired={true} />
 
-                            <SuggestionBox
-                                id={this.id + "_tipoCliente"}
-                                entity={this.selectedItem.tipo_cliente}
-                                valueName={TipoCliente.getCodigoFieldName()}
-                                idFieldName={TipoCliente.getIdFieldName()}
-                                suggestAction={(inputText) => this.suggestEntities(inputText,
-                                    ['codigo', 'descripcion'], ['codigo', 'descripcion'], 'id', "TipoCliente")}
-                                label={<FormattedMessage id="i18n_clientes_customer_type" />}
-                                maxLength={4}
-                                isEditing={!isInDetailMode}
-                                isRequired={true}
-                                findAction={() => this.openTipoClienteModal()} />
+                        <SuggestionBox
+                            id={this.id + "_tipoCliente"}
+                            entity={this.selectedItem.tipo_cliente}
+                            valueName={TipoCliente.getCodigoFieldName()}
+                            idFieldName={TipoCliente.getIdFieldName()}
+                            suggestAction={(inputText) => this.suggestEntities(inputText,
+                                ['codigo', 'descripcion'], ['codigo', 'descripcion'], 'id', "TipoCliente")}
+                            label={<FormattedMessage id="i18n_clientes_customer_type" />}
+                            maxLength={4}
+                            isEditing={!isInDetailMode}
+                            isRequired={true}
+                            findAction={() => this.openTipoClienteModal()} />
 
-                        </fieldset>
-                    </div>
+                    </fieldset>
+
                 </div>
 
             );

@@ -524,7 +524,7 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
 
                     {toolbar}
 
-                    <div style={{ marginTop: '10px', padding: '10px 5px 10px 5px', width: '99%', float: 'left' }}>
+                    <div style={{ marginTop: '10px', padding: '10px 5px 10px 5px', backgroundColor: "white", width: '99%', float: 'left' }}>
                         {editDetailForm}
                     </div>
 

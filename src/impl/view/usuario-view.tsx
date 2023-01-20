@@ -8,7 +8,6 @@ import Usuario from '../model/usuario';
 import InputText from '../../core/components/input-text';
 import { FormattedMessage } from "react-intl";
 
-
 /**
  * Interfaz de estado para poder añadir estados propios al controlador a mayores de los de CoreController.
  */
@@ -91,26 +90,21 @@ export default class UsuarioView extends ViewController<Usuario, IUsuarioViewSta
 
         return (
             <div>
-                <div style={{ padding: "3px", backgroundColor: 'white', float: "left" }}>
+                <fieldset style={{ float: "left" }}>
 
-                    <fieldset>
-                        
-                        <legend style={{ fontWeight: "bold", marginBottom: "3px" }}><FormattedMessage id="i18n_mainInfo_title" /></legend>
-                        
-                        <InputText
-                            id={this.id + "_username"}
-                            entity={this.selectedItem}
-                            valueName="username"
-                            label={<FormattedMessage id="i18n_usuarios_username" />}
-                            maxLength={50}
-                            isEditing={!isInDetailMode}
-                            isRequired={true} />
+                    <legend className='form-card-legend'><FormattedMessage id="i18n_mainInfo_title" /></legend>
 
-                        {passwordField}
-                    </fieldset>
+                    <InputText
+                        id={this.id + "_username"}
+                        entity={this.selectedItem}
+                        valueName="username"
+                        label={<FormattedMessage id="i18n_usuarios_username" />}
+                        maxLength={50}
+                        isEditing={!isInDetailMode}
+                        isRequired={true} />
 
-                </div>
-
+                    {passwordField}
+                </fieldset>
             </div>
         );
     }

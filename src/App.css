@@ -135,3 +135,8 @@ ul.menuLeft li span:hover {
   float: left;
   margin-left: 8px;
 }
+
+.form-card-legend {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
