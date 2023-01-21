@@ -9,6 +9,7 @@ export default class Usuario extends BaseEntity {
     id: number | null;
     username: string | null;
     password: string | null;
+    repeatPassword: string | null | undefined;
 
     // CONTRUCTOR
     constructor(id: number | null = null, username: string | null = null, password: string | null = null) {
@@ -20,7 +21,7 @@ export default class Usuario extends BaseEntity {
 
     // MÉTODOS
     /**
-     * Método estático a implementar. Devuelve un array de strings con las propiedades de la clase a exportar en json.
+     * Sobrescritura. Devuelve un array de strings con las propiedades de la clase a exportar en json.
      * 
      * @returns Listado de propiedades a exportar en json. 
      */
@@ -67,7 +68,7 @@ export default class Usuario extends BaseEntity {
         if (get_property_value_by_name(json_object, "usuario_creacion") !== null) {
             Object.assign(json_object, { usuario_creacion: Usuario.fromJSON(get_property_value_by_name(json_object, "usuario_creacion")) });
         }
-        
+
         if (get_property_value_by_name(json_object, "usuario_ult_mod") === undefined) {
             Object.assign(json_object, { usuario_ult_mod: null });
         }

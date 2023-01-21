@@ -399,7 +399,7 @@ export abstract class CoreController<T extends BaseEntity, I extends ICoreContro
      * 
      * @param {event} e Evento de javascript. 
      */
-    saveChanges = async (e: React.FormEvent<HTMLFormElement>) => {
+    protected async saveChanges(e: React.FormEvent<HTMLFormElement>) {
         // Prevedir el comportamiento por defecto del formulario, es decir, prevenir el submit.
         e.preventDefault();
 
