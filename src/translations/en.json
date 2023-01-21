@@ -48,5 +48,6 @@
     "i18n_usuarios_username": "Username",
     "i18n_usuarios_password": "Password",
     "i18n_usuarios_repeatPassword": "Repeat password",
-    "i18n_usuarios_password_not_match": "Passwords don't  match."
+    "i18n_usuarios_password_not_match": "Passwords don't  match.",
+    "i18n_usuarios_changePassword": "Change password"
 }

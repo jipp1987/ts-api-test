@@ -286,20 +286,6 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
     }
 
     /**
-    * Método de renderizado de toolbar de la tabla.
-    * 
-    * @returns {toolbar}. 
-    */
-    renderToolbarList(): React.ReactNode {
-        return (
-            <div key={this.id + "_list_toolbar"} className='toolbar'>
-                <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
-                <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
-            </div>
-        );
-    }
-
-    /**
      * Vuelve a la vista del listado.
      */
     goToList() {
@@ -426,21 +412,13 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
     /**
     * Método de renderizado de toolbar de la tabla.
     * 
-    * @returns Toolbar. 
+    * @returns {toolbar}. 
     */
-    renderToolbarEditDetail(): React.ReactNode {
-        // Si estamos en modo detalle, se mostrará un botón para editar el objeto; si estamos en modo edición, se mostrará el botón de guardar.
-        const editSaveButton: React.ReactNode = this.isInDetailMode() ?
-            <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null} /> :
-            <ImageButton title='i18n_save_button' className='save-button' type='submit' />;
-
-        // Le paso una key generada aleatoriamente porque este componente se va a repintar dentro de la misma vista, así fuerzo a que todos los hijos
-        // se repinten completamente. Si no lo hago, los botones podrían no funcionar bien a pesar de estar aparentemente bien renderizados.
-        const toolbar_id = this.isInDetailMode() ? this.id + "_detail_toolbar" : this.id + "_edit_toolbar";
+    renderToolbarList(): React.ReactNode {
         return (
-            <div className='toolbar' key={toolbar_id}>
-                <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
-                {editSaveButton}
+            <div key={this.id + "_list_toolbar"} className='toolbar'>
+                <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
+                <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
             </div>
         );
     }
@@ -483,6 +461,16 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
     }
 
     /**
+     * Devuelve true si el controlador de vista está en modo detalle.
+     * 
+     * @returns {boolean}
+     */
+    isInDetailMode(): boolean {
+        const { viewState } = this.state;
+        return (viewState !== null && viewState !== undefined && viewState === ViewStates.DETAIL);
+    }
+
+    /**
      * Implementación de renderizado de formulario de edición y detalle. Está pensado para sobrescribir en cada implementación de ViewController.
      * 
      * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
@@ -494,13 +482,38 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
     }
 
     /**
-     * Devuelve true si el controlador de vista está en modo detalle.
+     * Renderizado de acciones extra para el modo detalle de un elemento. Está pensado para ser implementado donde se necesite, por defecto devuelve null.
      * 
-     * @returns {boolean}
+     * @returns React.ReactNode
      */
-    isInDetailMode(): boolean {
-        const { viewState } = this.state;
-        return (viewState !== null && viewState !== undefined && viewState === ViewStates.DETAIL);
+    protected renderToolbarDetailExtraActions(): React.ReactNode {
+        return null;
+    }
+
+    /**
+    * Método de renderizado de toolbar de la tabla.
+    * 
+    * @returns Toolbar. 
+    */
+    renderToolbarEditDetail(): React.ReactNode {
+        // Si estamos en modo detalle, se mostrará un botón para editar el objeto; si estamos en modo edición, se mostrará el botón de guardar.
+        const editSaveButton: React.ReactNode = this.isInDetailMode() ?
+            <ImageButton title='i18n_edit_button' className='edit-button' type='button' onClick={() => this.selectedItem !== null ? this.prepareEdit(this.selectedItem) : null} /> :
+            <ImageButton title='i18n_save_button' className='save-button' type='submit' />;
+
+        // Acciones extra del modo detalle.
+        const detailExtraActions: React.ReactNode = this.isInDetailMode() ? this.renderToolbarDetailExtraActions() : null;
+
+        // Le paso una key generada aleatoriamente porque este componente se va a repintar dentro de la misma vista, así fuerzo a que todos los hijos
+        // se repinten completamente. Si no lo hago, los botones podrían no funcionar bien a pesar de estar aparentemente bien renderizados.
+        const toolbar_id = this.isInDetailMode() ? this.id + "_detail_toolbar" : this.id + "_edit_toolbar";
+        return (
+            <div className='toolbar' key={toolbar_id}>
+                <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
+                {editSaveButton}
+                {detailExtraActions}
+            </div>
+        );
     }
 
     /**
@@ -508,7 +521,7 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
      * 
      * @returns {Component} Componente visual de edición. 
      */
-    renderEditView(): React.ReactNode | null {
+    protected renderEditView(): React.ReactNode | null {
         const view_title = this.view_title;
 
         const editDetailForm = this.renderDetailEditForm(this.isInDetailMode());
@@ -520,7 +533,7 @@ export default abstract class ViewController<T extends BaseEntity, I extends ICo
             <div key={this.id + "_edit_view"}>
                 <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
-                <form method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
+                <form id={this.id + "_form"} method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
 
                     {toolbar}
 

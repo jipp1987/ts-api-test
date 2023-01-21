@@ -10,6 +10,7 @@ export default class Usuario extends BaseEntity {
     username: string | null;
     password: string | null;
     repeatPassword: string | null | undefined;
+    newPassword: string | null | undefined;
 
     // CONTRUCTOR
     constructor(id: number | null = null, username: string | null = null, password: string | null = null) {

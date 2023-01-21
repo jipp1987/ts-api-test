@@ -6,6 +6,7 @@ import { ICoreControllerProps, ICoreControllerState } from '../../core/view/core
 import Usuario from '../model/usuario';
 
 import InputText from '../../core/components/input-text';
+import ImageButton from '../../core/components/image-button';
 import { FormattedMessage } from "react-intl";
 import { toast } from 'react-hot-toast';
 
@@ -86,17 +87,90 @@ export default class UsuarioView extends ViewController<Usuario, IUsuarioViewSta
      * @returns boolean 
      */
     doesPasswordMatch = (): boolean => {
-        if (this.selectedItem !== undefined && this.selectedItem !== null
-            && this.selectedItem.password !== undefined && this.selectedItem.password !== null
-            && this.selectedItem.repeatPassword !== undefined && this.selectedItem.repeatPassword !== null) {
+        if (this.selectedItem !== undefined && this.selectedItem !== null) {
+            const password_field = this.isInDetailMode() ? this.selectedItem.newPassword : this.selectedItem.password;
+
+            if (password_field !== undefined && password_field !== null
+                && this.selectedItem.repeatPassword !== undefined && this.selectedItem.repeatPassword !== null) {
                 // Comprueba si coinciden los passwords.
-                if (this.selectedItem.password !== this.selectedItem.repeatPassword) {
+                if (password_field !== this.selectedItem.repeatPassword) {
                     toast.error(<FormattedMessage id="i18n_usuarios_password_not_match" />);
                     return false;
                 }
+            }
+            return true;
+        } else {
+            throw new Error("$$No entity.");
         }
+    }
 
-        return true;
+    /**
+     * Abre el modal de cambio de password.
+     */
+    private openPasswordChangeModal(): void {
+        if (this.selectedItem !== undefined && this.selectedItem !== null) {
+            this.selectedItem.newPassword = null;
+            this.selectedItem.repeatPassword = null;
+
+            // Le añado un nuevo modal
+            const modalContent =
+                <div
+                    style={{
+                        width: "100%",
+                        height: "100",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center"
+                    }}>
+
+                    <form id={this.id + "_modal_password_change_form"} method="POST" action="/" onSubmit={(e) => { e.preventDefault(); this.saveChanges(e) }}>
+                        <div style={{ float: "left" }}>
+                            <ImageButton title='i18n_usuarios_changePassword' className='password-button' type='submit' />
+                        </div>
+
+                        <div>
+                            <InputText
+                                id={this.id + "_modal_password"}
+                                entity={this.selectedItem}
+                                valueName="newPassword"
+                                isPassword={true}
+                                label={<FormattedMessage id="i18n_usuarios_password" />}
+                                maxLength={40}
+                                isRequired={true}
+                                isEditing={true}
+                                validation={() => this.doesPasswordMatch()} />
+
+                            <InputText
+                                id={this.id + "_modal_repeatPassword"}
+                                entity={this.selectedItem}
+                                valueName="repeatPassword"
+                                isPassword={true}
+                                label={<FormattedMessage id="i18n_usuarios_repeatPassword" />}
+                                maxLength={40}
+                                isRequired={true}
+                                isEditing={true}
+                                validation={() => this.doesPasswordMatch()} />
+
+                        </div>
+                    </form>
+
+                </div>
+
+            // Añadir modal y actualizar estado
+            this.addModal("i18n_usuarios_changePassword", modalContent);
+        }
+    }
+
+    /**
+     * Implementación de acciones extra en detalle.
+     * 
+     * @returns React.ReactNode
+     */
+    protected renderToolbarDetailExtraActions(): React.ReactNode {
+        return <>
+            <ImageButton title='i18n_usuarios_changePassword' className='password-button' onClick={() => this.openPasswordChangeModal()} />
+        </>;
     }
 
     /**
@@ -106,9 +180,15 @@ export default class UsuarioView extends ViewController<Usuario, IUsuarioViewSta
      */
     saveChanges = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        
+
         // Comprobar que coinciden los passwords antes de guardar la entidad.
         if (this.doesPasswordMatch()) {
+            // En modo detalle, si se actualiza es un cambio de password.
+            if (this.selectedItem !== undefined && this.selectedItem !== null && this.selectedItem.newPassword !== undefined
+                && this.isInDetailMode()) {
+                this.selectedItem.password = this.selectedItem.newPassword;
+            }
+
             return super.saveChanges(e);
         }
     }

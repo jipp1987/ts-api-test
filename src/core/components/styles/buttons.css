@@ -124,3 +124,7 @@
 .next-button {
     background: url("../../resources/next.png") no-repeat;
 }
+
+.password-button {
+    background: url("../../resources/password.png") no-repeat;
+}
