@@ -179,7 +179,7 @@ export default function InputText(props: IInputTextProps) {
      * @returns {component}
      */
     const renderRequiredLabel = (isRequired: boolean): React.ReactNode | null => {
-        if (isRequired) {
+        if (isRequired && !isInputError) {
             return (
                 <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span>
             )
@@ -188,8 +188,25 @@ export default function InputText(props: IInputTextProps) {
         }
     }
 
+    /**
+     * Etiqueta para cuando hay error en el input.
+     * 
+     * @param isError 
+     * @returns 
+     */
+    const renderErrorLabel = (isError: boolean): React.ReactNode | null => {
+        if (isError) {
+            return (
+                <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>!</span>
+            )
+        } else {
+            return null;
+        }
+    }
+
     // Etiqueta de campo obligatorio
     const requiredLabel = renderRequiredLabel(isRequired);
+    const errorLabel = renderErrorLabel(isInputError);
 
     return (
         <div className="input-panel">
@@ -215,6 +232,7 @@ export default function InputText(props: IInputTextProps) {
                     required={isRequired ? true : false} />
 
                 {requiredLabel}
+                {errorLabel}
 
             </div>
 

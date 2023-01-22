@@ -32,10 +32,10 @@
 }
 
 .my-input-error {
-    border: 2px solid rgb(236, 15, 15) !important;
+    border: 1px solid rgb(236, 15, 15) !important;
     text-align: left;
-    background-color: rgba(243, 165, 165, 0.747);
-    color: rgb(95, 91, 91);
+    background-color: rgba(241, 215, 215, 0.747);
+    color: rgb(240, 26, 26);
 }
 
 .suggestion-box {
