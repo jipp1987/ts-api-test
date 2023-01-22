@@ -48,20 +48,15 @@ interface IInputTextProps {
  * @param props 
  */
 export default function InputText(props: IInputTextProps) {
-    // Comprobar posibles valores null.
-    const isRequiredProps: boolean = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
-    const isEditingProps: boolean = props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false;
-    const valueProps = props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "";
-
-    // Esto lo almaceno como atributo de estado para evitar que, si no ha cambiado el valor, se ejecute la acción de validación en el onBlur
-    const [originalValue] = useState<string>(valueProps);
-
     // Estado inicial a partir de las propiedades
-    const [value, setValue] = useState(valueProps);
-    const [isRequired, setIsRequired] = useState(isRequiredProps);
-    const [entity, setEntity] = useState(props.entity);
-    const [isEditing, setIsEditing] = useState(isEditingProps);
-    // const [result, setResult] = useState(null);
+    const valueProps: string = props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "";
+    const [value, setValue] = useState<string>(valueProps);
+    // Utilizo esta variable de estado para almacenar el último valor del input, para prevenir ejecutar las acciones asociadas constantemente si no ha cambiado.
+    const [lastValue, setLastValue] = useState<string>(valueProps);
+
+    const [isRequired, setIsRequired] = useState<boolean>(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
+    const [entity, setEntity] = useState<any>(props.entity);
+    const [isEditing, setIsEditing] = useState<boolean>(props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
@@ -76,18 +71,20 @@ export default function InputText(props: IInputTextProps) {
 
     // Rerenderizado utilizando el hook useEffect. Se utiliza para detectar cambios en los valores de estado y forzar el rerender del componente.
     useEffect(() => {
-        setIsRequired(isRequiredProps);
-    }, [isRequiredProps]);
+        setIsRequired(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
+    }, [props.isRequired]);
 
     useEffect(() => {
-        setIsEditing(isEditingProps);
-    }, [isEditingProps]);
+        setIsEditing(props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false);
+    }, [props.isEditing]);
 
-    // Si cambia la entidad asociada, debe volver a renderizarse.
+    // Si cambia la entidad asociada desde otro componente, el input debe volver a renderizarse.
     useEffect(() => {
-        setValue(valueProps);
+        const newValue = props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "";
+        setValue(newValue);
+        setLastValue(newValue);
         setEntity(props.entity);
-    }, [props.entity, valueProps]);
+    }, [props.entity, props.valueName]);
 
     /**
      * Evento de cambio del input para modificar a la vez la propiedad del objeto asociado al mismo.
@@ -128,9 +125,12 @@ export default function InputText(props: IInputTextProps) {
      */
     const onBlur = async (event: React.FocusEvent<HTMLInputElement>) => {
         // Si el valor es null o bien el valor original (almacenado originalmente en valueProps) es igual al valor actual, que no active la validación.
-        if ((value === null || value === "") || value === originalValue) {
+        if ((value === null || value === "") || value === lastValue) {
             return;
         }
+
+        // Guardo el último valor para prevenir validar constantemente el input si no ha cambiado.
+        setLastValue(value);
 
         // Ejecutar primero los validadores si los hubiera
         // Asumo que va a ser null para evitar forzar el click al final si no hay eventos asíncronos; los eventos asíncronos durante la validación 
@@ -143,31 +143,6 @@ export default function InputText(props: IInputTextProps) {
             // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
             await validation();
         }
-    };
-
-    /**
-     * Se utiliza para controlar si la pérdida de foco se debe a hacer click en un botón.
-     * 
-     * @param event 
-     * @returns true si se hace click en un botón al salir del componente. 
-     */
-    const onLostFocusClickHandler = (event: React.FocusEvent<HTMLInputElement>): boolean => {
-        var shouldFireOnBlur: boolean = true;
-
-        if (event !== undefined && event !== null) {
-            const relatedTarget: any = event.relatedTarget;
-
-            // Se trata de averiguar si el evento onBlur se ha disparado por hacer click en algún botón. En ese caso, prevenimos ejecutar onBlur.
-            // Lo hago porque el evento onBlur tiene prioridad sobre el evento onClick, y si el input tiene una validación asíncrona el onClick del botón
-            // no se va a ejecutar. Una solución sería modificar onClick por onMouseDown en los botones porque tiene más prioridad que onBlur, pero no es buena
-            // idea porque el evento onMouseDown es diferente de onClick y el comportamiento de la aplicación va a cambiar si lo hago así. 
-            if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
-                shouldFireOnBlur = false;
-                // relatedTarget.click();
-            }
-        }
-
-        return shouldFireOnBlur;
     };
 
     /**
@@ -203,7 +178,7 @@ export default function InputText(props: IInputTextProps) {
                     className="my-input"
                     onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                     onChange={(e) => handleChange(e)}
-                    onBlur={(e) => { if (onLostFocusClickHandler(e)) { onBlur(e) } }}
+                    onBlur={(e) => onBlur(e) }
                     size={size}
                     maxLength={maxLength}
                     minLength={minLength}
