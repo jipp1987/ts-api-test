@@ -13,17 +13,29 @@
     margin-left: 3px;
 }
 
-.my-label {
+.my-label, .my-label-error {
     margin-bottom: 3px;
     font-size: 13px !important;
     font-weight: bold;
 }
 
-.my-input {
+.my-label-error {
+    color: red;
+    font-weight: bold;
+}
+
+.my-input, .my-input-error {
     padding: 0.25em 0.5em;
     background-color: #fff;
     border: 1px solid #ccc;
     text-align: left;
+}
+
+.my-input-error {
+    border: 2px solid rgb(236, 15, 15) !important;
+    text-align: left;
+    background-color: rgba(243, 165, 165, 0.747);
+    color: rgb(95, 91, 91);
 }
 
 .suggestion-box {

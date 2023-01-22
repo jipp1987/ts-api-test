@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import './styles/inputs.css';
 
@@ -57,6 +57,12 @@ export default function InputText(props: IInputTextProps) {
     const [isRequired, setIsRequired] = useState<boolean>(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
     const [entity, setEntity] = useState<any>(props.entity);
     const [isEditing, setIsEditing] = useState<boolean>(props.isEditing !== undefined && props.isEditing !== null ? props.isEditing : false);
+
+    // Comprobar si hay error
+    const [isInputError, setInputError] = useState<boolean>(false);
+
+    // Referencia al input para forzar el foco al componente en caso de error
+    const inputRef: React.MutableRefObject<any> = useRef<any>(null);
 
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
@@ -141,7 +147,28 @@ export default function InputText(props: IInputTextProps) {
         // Validador de código
         if (validation !== undefined && validation !== null) {
             // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
-            await validation();
+            const result = await validation();
+            // Si hay error.
+            if (result !== undefined) {
+                // Esto devuelve null o true si el valor es correcto, o false si no lo es.
+                const isError: boolean = result === null || result ? false : true;
+                setInputError(isError);
+                // Foco en el componente
+                if (isError) {
+                    inputRef.current.focus();
+                    inputRef.current.select();
+                } else {
+                    // Si el onBlur se ha ejecutado al hacer click en uno de los botones, el onClick de éstos no se disparará debido a que el onBlur
+                    // tiene prioridad. No puedo prevenir esto, pero al menos puedo forzar a que si no hay error deje el foco puesto en el botón para que
+                    // es usuario no pierda de vista dónde estaba.
+                    if (event !== undefined && event !== null) {
+                        const { relatedTarget } = event;
+                        if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
+                            (relatedTarget as HTMLInputElement).focus();
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -167,18 +194,19 @@ export default function InputText(props: IInputTextProps) {
     return (
         <div className="input-panel">
 
-            <label htmlFor={id} className="my-label">{label}</label>
+            <label htmlFor={id} className={isInputError ? "my-label-error" : "my-label"}>{label}</label>
 
             <div style={{ marginLeft: '2px', float: 'left' }}>
 
                 <input
                     id={id}
+                    ref={inputRef}
                     disabled={!isEditing ? true : false}
                     type={props.isPassword !== undefined && props.isPassword ? "password" : "text"}
-                    className="my-input"
+                    className={isInputError ? "my-input-error" : "my-input"}
                     onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                     onChange={(e) => handleChange(e)}
-                    onBlur={(e) => onBlur(e) }
+                    onBlur={(e) => onBlur(e)}
                     size={size}
                     maxLength={maxLength}
                     minLength={minLength}

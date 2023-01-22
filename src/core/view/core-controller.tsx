@@ -592,10 +592,10 @@ export abstract class CoreController<T extends BaseEntity, I extends ICoreContro
      * @param  {...ViewValidators} validators Listado de enumerado de ViewValidators.
      * @returns {boolean} true si es válido, false si no lo es.
      */
-    validateField = (item_to_check: T | null, field_name: string, validators: Array<string>): Promise<boolean> | boolean | null => {
+    validateField = async (item_to_check: T | null, field_name: string, validators: Array<string>): Promise<boolean> => {
         // Si el ítem es null, devuelvo null
         if (item_to_check === null) {
-            return null;
+            throw new Error("$$No entity");
         }
 
         // Asumo que será válido
@@ -616,7 +616,7 @@ export abstract class CoreController<T extends BaseEntity, I extends ICoreContro
                 case ViewValidators.CODE_VALIDATOR:
                     // Validador de código
                     function_to_call = this.code_is_valid;
-                    is_valid = this.executeValidateFunction(function_to_call, [item_to_check, field_name]);
+                    is_valid = await this.executeValidateFunction(function_to_call, [item_to_check, field_name]);
                     break;
 
                 case ViewValidators.IS_NUMERIC_VALIDATOR:
