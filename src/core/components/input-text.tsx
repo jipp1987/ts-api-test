@@ -135,25 +135,39 @@ export default function InputText(props: IInputTextProps) {
         // Ejecutar primero los validadores si los hubiera
         // Asumo que va a ser null para evitar forzar el click al final si no hay eventos asíncronos; los eventos asíncronos durante la validación 
         // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.
-        var isValid = null;
 
         const { validation } = props;
 
         // Validador de código
         if (validation !== undefined && validation !== null) {
             // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
-            isValid = await validation();
+            await validation();
         }
+    };
 
-        // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 
-        // podemos forzar el click. Sólo pasamos por aquí si la validación ha sido ok.
-        if (isValid && event !== undefined && event !== null) {
+    /**
+     * Se utiliza para controlar si la pérdida de foco se debe a hacer click en un botón.
+     * 
+     * @param event 
+     * @returns true si se hace click en un botón al salir del componente. 
+     */
+    const onLostFocusClickHandler = (event: React.FocusEvent<HTMLInputElement>): boolean => {
+        var shouldFireOnBlur: boolean = true;
+
+        if (event !== undefined && event !== null) {
             const relatedTarget: any = event.relatedTarget;
 
+            // Se trata de averiguar si el evento onBlur se ha disparado por hacer click en algún botón. En ese caso, prevenimos ejecutar onBlur.
+            // Lo hago porque el evento onBlur tiene prioridad sobre el evento onClick, y si el input tiene una validación asíncrona el onClick del botón
+            // no se va a ejecutar. Una solución sería modificar onClick por onMouseDown en los botones porque tiene más prioridad que onBlur, pero no es buena
+            // idea porque el evento onMouseDown es diferente de onClick y el comportamiento de la aplicación va a cambiar si lo hago así. 
             if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
-                relatedTarget.click();
+                shouldFireOnBlur = false;
+                // relatedTarget.click();
             }
         }
+
+        return shouldFireOnBlur;
     };
 
     /**
@@ -189,7 +203,7 @@ export default function InputText(props: IInputTextProps) {
                     className="my-input"
                     onKeyDown={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                     onChange={(e) => handleChange(e)}
-                    onBlur={(e) => onBlur(e)}
+                    onBlur={(e) => { if (onLostFocusClickHandler(e)) { onBlur(e) } }}
                     size={size}
                     maxLength={maxLength}
                     minLength={minLength}
