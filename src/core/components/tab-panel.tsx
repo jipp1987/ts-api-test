@@ -14,11 +14,18 @@ class DataTab {
     label: string;
     content: any;
     id: string;
+    viewName: string;
+    /**
+     * Esto lo utilizo para las pestañas del mismo menú repetidas.
+     */
+    subIndex?: number;
     
-    constructor(label: string, content: any, id: string) {
+    constructor(label: string, content: any, id: string, viewName: string, subIndex?: number) {
         this.label = label;
         this.content = content;
         this.id = id;
+        this.viewName = viewName;
+        this.subIndex = subIndex;
     }
 }
 
@@ -48,8 +55,15 @@ interface ITabPanelState {
  */
 export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> {
 
+    /**
+     * Diccionario para ir almacenando las pestañas para añadir un índice a medida que se van repitiendo.
+     */
+    tabDict: {[key: string]: Array<DataTab>};
+
     constructor(props: ITabPanelProps) {
         super(props);
+
+        this.tabDict = {};
 
         this.state = {
             activeTab: null,
@@ -71,8 +85,9 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
      * Acción de click para cerrar una pestaña.
      * 
      * @param {*} tab Índice de la pestaña a eliminar.
+     * @param {*} viewName Nombre de la vista.
      */
-    onCloseTabItem = (tab: number) => {
+    onCloseTabItem = (tab: number, viewName: string, subIndex?: number) => {
         // Clono los datos del estado del TabPanel.
         let data = this.state.data.slice();
 
@@ -106,6 +121,35 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
             newActiveTab = null;
         }
 
+        // Rehacer subíndices de pestañas repetidas
+        if (subIndex !== undefined && viewName in this.tabDict) {
+            // Eliminar elemento
+            this.tabDict[viewName].splice(subIndex, 1);
+            
+            // Reordenar el resto si aún quedan
+            let newIndex: number;
+
+            // Si no quedan más claves para esa pestaña, eliminar la clave del objeto
+            if (this.tabDict[viewName].length === 0) {
+                delete this.tabDict.viewName;
+            } else {
+                // Reordenar las claves internas del diccionario de subíndices
+                for (let i = 0; i < this.tabDict[viewName].length; i++) {
+                    newIndex = i + 1;                    
+                    this.tabDict[viewName][i].subIndex = newIndex;
+                }
+            }
+
+            // OJO!!! Hay que modificar también el valor en los datos, porque es la variable de estado.
+            newIndex = 0;
+            for (let j = 0; j < data.length; j++) {
+                if (data[j].viewName === viewName) {
+                    newIndex++;
+                    data[j].subIndex = newIndex;
+                }
+            }
+        }
+
         // Modifico el estado: tanto los nuevos datos como la pestaña activa (la última en añadirse).
         this.setState({ data: data, activeTab: newActiveTab })
     }
@@ -113,15 +157,40 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
     /**
      * Evento para manejar la adición de nuevas pestañas.
      * 
-     * @param {*} label 
-     * @param {*} tab 
+     * @param {*} label Etiqueta
+     * @param {*} tab Contenido de la pestaña.
      */
-    handleAddTab(label: string, tab: number) {
+    handleAddTab(label: string, tab: any, viewName: string) {
         // Clono los datos del estado del TabPanel.
         let data = this.state.data.slice();
 
         // Modifico el listado añadiendo un nuevo tab.
-        data.push(new DataTab(label, tab, generateUuid()));
+        const newTab: DataTab = new DataTab(label, tab, generateUuid(), viewName);
+        data.push(newTab);
+
+        // Añado una clave al mapa. Utilizo el nombre de la vista, un string fijo que no se va a repetir porque es el nombre del componente React.
+        if (viewName in this.tabDict) {
+            // Rehacer subindex de las demás pestañas abiertas
+            for (let i = 0; i < this.tabDict[viewName].length; i++) {
+                this.tabDict[viewName][i].subIndex = i + 1;
+            }
+
+            // Si ya existe, añadir una nueva pestaña y añadir un índice al label
+            newTab.subIndex = this.tabDict[viewName].length + 1;
+            this.tabDict[viewName].push(newTab);
+        } else {
+            // Si no existe, crear el array
+            this.tabDict[viewName] = [newTab];
+        }
+
+        // OJO!!! Modificar también subindex de data
+        var newIndex: number = 0;
+        for (let j = 0; j < data.length; j++) {
+            if (data[j].viewName === viewName) {
+                newIndex++;
+                data[j].subIndex = newIndex;
+            }
+        }
 
         // Modifico el estado: tanto los nuevos datos como la pestaña activa (la última en añadirse).
         this.setState({ data: data, activeTab: data.length - 1 })
@@ -148,6 +217,8 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
                         {data.map((step, i) => {
                             const label = data[i].label;
                             const id = data[i].id;
+                            const viewName = data[i].viewName;
+                            const subIndex = data[i].subIndex;
 
                             // Primero pinto los botones de las pestañas, que contendrán la lógica de cambio y cierre de pestañas utilizando funciones definidas aquí.
                             return (
@@ -156,7 +227,9 @@ export default class TabPanel extends Component<ITabPanelProps, ITabPanelState> 
                                     activeTab={activeTab}
                                     tabIndex={i}
                                     label={label}
+                                    viewName={viewName}
                                     onClick={onClickTabItem}
+                                    repeatedTabSubIndex={subIndex}
                                     onCloseClick={onCloseTabItem}
                                 />
                             );

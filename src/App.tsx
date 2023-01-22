@@ -87,7 +87,8 @@ export default function App() {
    */
   const addTabToTabPanel = (label: string, component: string) => {
     // Utilizo la referencia al tabPanel y llamo a su función definida handleAddTab.
-    tabPanel.current.handleAddTab(label, VIEW_MAP[component]);
+    // Paso a tabpanel el nombre como tal del componente, para mantener un subíndice de pestañas repetidas.
+    tabPanel.current.handleAddTab(label, VIEW_MAP[component], component);
   }
 
   /**
